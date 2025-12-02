@@ -1,8 +1,17 @@
-import React from 'react'
-import Login from './pages/Login'
+import React from "react";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Login from './pages/Login';
+import LandingPage from "./components/LandingPage";
 
 export default function App() {
   return (
-    <Login />
-  )
+    <div className="flex flex-col min-h-screen">
+      <Header />
+
+      <LandingPage />
+
+      <Footer />
+    </div>
+  );
 }
