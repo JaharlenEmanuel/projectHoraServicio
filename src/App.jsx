@@ -1,12 +1,16 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './components/Login'; // Asegúrate que la ruta sea correcta
 import AdminLayout from './components/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import Users from './pages/admin/Users';
 import Reports from './pages/admin/Reports';
 import Categories from './pages/admin/Categories';
 import Profile from './pages/admin/Profile';
+
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Login from './pages/Login';
+import LandingPage from "./components/LandingPage";
 
 function App() {
   return (
@@ -32,6 +36,7 @@ function App() {
       {/* Ruta para cualquier otra URL no definida */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+    
   );
 }
 
