@@ -7,7 +7,7 @@ export default function LandingPage() {
       style={{ backgroundImage: `url(/Fondo.jpg)` }}
     >
       <div
-        className="bg-black bg-opacity-30 p-2 rounded-xl shadow-2xl w-full max-w-3xl"
+        className="bg-black bg-opacity-30 p-2 rounded-xl shadow-2xl w-full max-w-3xl 2xl:max-w-5xl 2xl:p-6 2xl:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]"
         style={{ aspectRatio: "16/9" }}
       >
         <iframe

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; 
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+  const navigate = useNavigate(); 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);
@@ -10,6 +11,22 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleNavigation = (item) => {
+    setIsMenuOpen(false); 
+
+    if (item === "Servicios") {
+      navigate("/servicios");
+    } else if (item === "Inicio") {
+      navigate("/");
+    } else if (item === "Contacto") {
+      
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  };
 
   return (
     <header className="bg-linear-to-r from-white via-cyan-100 to-blue-200 p-4 shadow-md relative z-50">
@@ -53,6 +70,7 @@ const Header = () => {
             <span
               key={item}
               className="cursor-pointer transform transition hover:text-cyan-600 lg:active:scale-125"
+              onClick={() => handleNavigation(item)}
             >
               {item}
             </span>
@@ -65,6 +83,7 @@ const Header = () => {
         </nav>
       </div>
 
+      
       <div
         className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${
           isMenuOpen
@@ -97,7 +116,7 @@ const Header = () => {
             <span
               key={item}
               className="inline-block transform transition hover:text-cyan-600 active:scale-125 cursor-pointer"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => handleNavigation(item)}
             >
               {item}
             </span>
