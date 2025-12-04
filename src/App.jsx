@@ -8,12 +8,35 @@ import Reports from './pages/admin/Reports';
 import Categories from './pages/admin/Categories';
 import Profile from './pages/shared/Profile'; // Importar desde la ubicación correcta
 
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import LandingPage from "./components/LandingPage";
+import Servicios from "./pages/Servicios";
+import EstadosDeHoras from "./pages/EstadosDeHoras"; 
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Ruta de login */}
         <Route path="/login" element={<Login />} />
+      <div className="flex flex-col min-h-screen">
+        <Header />
+
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/servicios" element={<Servicios />} />
+          <Route path="/estado" element={<EstadosDeHoras />} />{" "}
+        </Routes>
+
+        <Footer />
+      </div>
+    
+
+    <Routes>
+      {/* Ruta de login */}
+      <Route path="/login" element={<Login />} />
 
         {/* Ruta pública del perfil - CORREGIDO */}
         <Route path="/profile" element={<Profile />} />
@@ -36,6 +59,9 @@ function App() {
         {/* Ruta para cualquier otra URL no definida */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
+      {/* Ruta para cualquier otra URL no definida */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
     </BrowserRouter>
   );
 }
