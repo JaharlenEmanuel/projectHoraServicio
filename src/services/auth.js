@@ -8,33 +8,60 @@ const api = axios.create({
     withCredentials: true,
 });
 
-// === FUNCIONES DE AUTENTICACIÓN ===
+// Interceptor para manejar errores globalmente
+api.interceptors.response.use(
+    response => response,
+    error => {
+        console.error('API Error:', error.response?.data || error.message);
+        return Promise.reject(error);
+    }
+);
 
 // 1. Login
 export const login = (email, password) =>
     api.post('/auth/login', { email, password });
 
-// 2. Obtener perfil
-export const getProfile = () =>
-    api.get('/auth/profile');
+// 2. Obtener perfil - MEJORADO
+export const getProfile = async () => {
+    try {
+        const response = await api.get('/auth/profile');
+        return response;
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+    }
+};
 
-// 3. Cambiar contraseña
-export const changePassword = (oldPassword, newPassword) =>
-    api.put('/auth/change-password', {
-        old_password: oldPassword,
-        new_password: newPassword
-    });
+// 3. Cambiar contraseña - MEJORADO Y CORREGIDO
+export const changePassword = async (oldPassword, newPassword) => {
+    try {
+        console.log('Sending password change request:', { oldPassword, newPassword });
+
+        const response = await api.put('/auth/change-password', {
+            old_password: oldPassword,
+            new_password: newPassword
+        });
+
+        console.log('Password change successful:', response.data);
+        return response;
+    } catch (error) {
+        console.error('Error changing password:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            message: error.message
+        });
+        throw error;
+    }
+};
 
 // 4. Función para verificar autenticación
 export const checkAuth = async () => {
     try {
         const response = await getProfile();
-
         const user = response.data;
 
         // Verifica diferentes formas en que podría venir el rol
         const roleName = user.role?.name || user.role || user.role_name || 'user';
-
         const isAdmin = roleName === 'admin' || roleName === 'Admin' || roleName === 'ADMIN';
 
         return { isAuthenticated: true, isAdmin, user };
@@ -44,6 +71,6 @@ export const checkAuth = async () => {
 };
 
 export const logout = () => {
-
+    localStorage.removeItem('role');
     return Promise.resolve();
 };

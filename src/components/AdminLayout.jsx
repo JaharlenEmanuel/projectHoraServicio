@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { checkAuth } from '../services/auth';
+import { checkAuth, logout as authLogout, getProfile } from '../services/auth';
 
 const AdminLayout = () => {
     const [user, setUser] = useState(null);
@@ -15,7 +15,7 @@ const AdminLayout = () => {
             try {
                 console.log('Verifying authentication for admin...');
 
-                // Primero verificamos la autenticación
+                // Verificar autenticación usando checkAuth
                 const authData = await checkAuth();
                 const { isAuthenticated, isAdmin, user } = authData;
 
@@ -34,22 +34,35 @@ const AdminLayout = () => {
                     return;
                 }
 
-                // Si tenemos usuario pero queremos datos más actualizados
+                // Si tenemos usuario, establecerlo
                 if (user) {
                     setUser(user);
+                    // Guardar en localStorage para consistencia
+                    localStorage.setItem('user', JSON.stringify(user));
                 } else {
-                    // Intentamos obtener perfil
-                    const profileResult = await getProfile();
-                    if (profileResult.success) {
-                        setUser(profileResult.user);
-                    } else {
-                        setUser(authData.user);
+                    // Intentar obtener perfil directamente
+                    try {
+                        const profileResponse = await getProfile();
+                        if (profileResponse.data) {
+                            const userData = profileResponse.data;
+                            setUser(userData);
+                            localStorage.setItem('user', JSON.stringify(userData));
+                        }
+                    } catch (profileError) {
+                        console.error('Error getting profile:', profileError);
+                        // Usar datos de auth si hay fallo
+                        if (authData.user) {
+                            setUser(authData.user);
+                        }
                     }
                 }
 
                 setAuthError('');
             } catch (error) {
-                console.error('Error de autenticación:', error);
+                console.error('Error de autenticación completo:', error);
+                // Limpiar datos de sesión
+                localStorage.removeItem('user');
+                sessionStorage.clear();
                 navigate('/login', { replace: true });
             } finally {
                 setLoading(false);
@@ -59,19 +72,70 @@ const AdminLayout = () => {
         verifyAuth();
     }, [navigate, location.pathname]);
 
-    const handleLogout = () => {
-        authLogout();
+    // Función para cerrar sesión inmediatamente (sin esperar respuesta)
+    const handleQuickLogout = () => {
+        // Limpiar inmediatamente
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        sessionStorage.clear();
+        setUser(null);
+
+        // Redirigir inmediatamente
+        navigate('/login', {
+            replace: true,
+            state: { message: 'Sesión cerrada correctamente' }
+        });
     };
 
+    const handleLogout = async () => {
+        try {
+            console.log('Iniciando logout...');
+
+            // 1. Llamar al servicio de logout
+            await authLogout();
+
+            // 2. Limpiar todos los datos de almacenamiento
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            sessionStorage.removeItem('token');
+
+            // 3. Limpiar estado local
+            setUser(null);
+
+            // 4. Redirigir al login con mensaje
+            console.log('Logout completado, redirigiendo...');
+            navigate('/login', {
+                replace: true,
+                state: { message: 'Sesión cerrada correctamente' }
+            });
+
+        } catch (error) {
+            console.error('Error durante logout:', error);
+            // Si falla el logout del servidor, usar la versión rápida
+            handleQuickLogout();
+        }
+    };
+
+    // CORREGIR el menú - usar "/profile" en lugar de "/shared/Profile"
     const menuItems = [
         { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
         { path: '/admin/users', icon: '👥', label: 'Usuarios' },
         { path: '/admin/reports', icon: '📋', label: 'Reportes' },
         { path: '/admin/categories', icon: '📂', label: 'Categorías' },
-        { path: '/admin/profile', icon: '👤', label: 'Mi Perfil' },
+        { path: '/profile', icon: '👤', label: 'Mi Perfil' }, // CORREGIDO
     ];
 
-    const isActive = (path) => location.pathname.startsWith(path);
+    // Modificar la función isActive para el perfil
+    const isActive = (path) => {
+        // Para el perfil, verificar si la ruta actual es exactamente /profile
+        if (path === '/profile') {
+            return location.pathname === '/profile';
+        }
+        // Para las demás rutas, verificar si comienzan con el path
+        return location.pathname.startsWith(path);
+    };
 
     if (loading) {
         return (
@@ -149,10 +213,10 @@ const AdminLayout = () => {
 
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         <button
-                            onClick={handleLogout}
-                            className="flex items-center w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            onClick={handleQuickLogout} // Ahora está definida
+                            className="flex items-center w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
                         >
-                            <span className="text-xl mr-3">🚪</span>
+                            <span className="text-xl mr-3 group-hover:animate-pulse">🚪</span>
                             <span className="font-medium">Cerrar Sesión</span>
                         </button>
                     </div>

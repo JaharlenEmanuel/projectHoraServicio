@@ -1,23 +1,33 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getUsers, createUser, updateUser, getRoles, getSchools, api } from '../services/api';
 import { getProfile } from '../services/auth';
 
 export const useUsers = () => {
+    // Estados principales
     const [users, setUsers] = useState([]);
-    const [students, setStudents] = useState([]); // Nuevo estado para estudiantes
-    const [allUsers, setAllUsers] = useState([]); // Usuarios combinados
+    const [students, setStudents] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
+
+    // Estados para filtros y paginación
     const [filteredUsers, setFilteredUsers] = useState([]);
+    const [paginatedUsers, setPaginatedUsers] = useState([]);
+
+    // Estados para datos de referencia
     const [roles, setRoles] = useState([]);
     const [filteredRoles, setFilteredRoles] = useState([]);
     const [schools, setSchools] = useState([]);
+
+    // Estados de UI
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    // Estados para paginación
+    // Estados de paginación
     const [currentPage, setCurrentPage] = useState(1);
     const [usersPerPage, setUsersPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(1);
 
+    // Función para cargar todos los datos
     const fetchData = async () => {
         try {
             setLoading(true);
@@ -27,7 +37,6 @@ export const useUsers = () => {
                 getUsers(),
                 getRoles(),
                 getSchools(),
-                // Cargar estudiantes desde el endpoint específico
                 api.get('/students')
             ]);
 
@@ -47,14 +56,14 @@ export const useUsers = () => {
             // Procesar estudiantes del endpoint específico
             const processedStudents = studentsRes.data.map(student => ({
                 ...student,
-                role: { name: 'Student', id: 2 }, // Asignar rol student
+                role: { name: 'Student', id: 2 },
                 f_name: student.first_name || student.f_name || '',
                 f_lastname: student.last_name || student.f_lastname || '',
                 s_lastname: student.second_lastname || student.s_lastname || '',
-                // Asegurar que school_id esté disponible
                 school_id: student.school_id || student.school?.id || student.school
             }));
 
+            // Guardar estados
             setUsers(adminStudentUsers);
             setStudents(processedStudents);
 
@@ -62,7 +71,7 @@ export const useUsers = () => {
             const combinedUsers = [...adminStudentUsers, ...processedStudents];
             setAllUsers(combinedUsers);
             setFilteredUsers(combinedUsers);
-            setCurrentPage(1);
+            setPaginatedUsers(combinedUsers.slice(0, usersPerPage)); // Primera página por defecto
 
             // Filtrar roles: solo admin y student
             const adminStudentRoles = rolesRes.data.filter(role => {
@@ -74,6 +83,12 @@ export const useUsers = () => {
             setFilteredRoles(adminStudentRoles);
             setSchools(schoolsRes.data);
             setError(null);
+
+            // Calcular total de páginas
+            const total = Math.ceil(combinedUsers.length / usersPerPage);
+            setTotalPages(total || 1);
+            setCurrentPage(1); // Resetear a página 1
+
         } catch (err) {
             console.error('Error cargando datos:', err);
             setError(`Error cargando datos: ${err.message}`);
@@ -82,6 +97,7 @@ export const useUsers = () => {
         }
     };
 
+    // Función para cargar el usuario actual
     const fetchCurrentUser = async () => {
         try {
             const response = await getProfile();
@@ -91,11 +107,58 @@ export const useUsers = () => {
         }
     };
 
+    // Función para aplicar paginación
+    const applyPagination = useCallback(() => {
+        const indexOfLastUser = currentPage * usersPerPage;
+        const indexOfFirstUser = indexOfLastUser - usersPerPage;
+        const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+        setPaginatedUsers(currentUsers);
+
+        // Calcular total de páginas
+        const total = Math.ceil(filteredUsers.length / usersPerPage);
+        setTotalPages(total || 1);
+    }, [filteredUsers, currentPage, usersPerPage]);
+
+    // Aplicar paginación cuando cambian los filtros o la página
+    useEffect(() => {
+        applyPagination();
+    }, [applyPagination]);
+
+    // Función para cambiar de página
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            setCurrentPage(page);
+        }
+    };
+
+    // Función para filtrar usuarios
+    const filterUsers = (searchTerm = '', roleFilter = 'all') => {
+        const filtered = allUsers.filter(user => {
+            // Búsqueda por nombre, apellido o email
+            const matchesSearch = searchTerm === '' ||
+                user.f_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.f_lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                `${user.f_name} ${user.f_lastname} ${user.s_lastname}`.toLowerCase().includes(searchTerm.toLowerCase());
+
+            // Filtro por rol
+            const matchesRole = roleFilter === 'all' ||
+                user.role?.name?.toLowerCase() === roleFilter;
+
+            return matchesSearch && matchesRole;
+        });
+
+        setFilteredUsers(filtered);
+        setCurrentPage(1); // Resetear a página 1 al filtrar
+    };
+
+    // Función para crear usuario
     const handleCreateUser = async (userData) => {
         try {
             setLoading(true);
             await createUser(userData);
-            await fetchData();
+            await fetchData(); // Recargar datos
             return { success: true, message: 'Usuario creado exitosamente' };
         } catch (err) {
             console.error('Error creando usuario:', err);
@@ -108,6 +171,7 @@ export const useUsers = () => {
         }
     };
 
+    // Función para actualizar usuario
     const handleUpdateUser = async (userId, userData) => {
         try {
             setLoading(true);
@@ -123,7 +187,7 @@ export const useUsers = () => {
             const response = await updateUser(userId, updateData);
             console.log('Respuesta de la API:', response.data);
 
-            await fetchData();
+            await fetchData(); // Recargar datos
             return {
                 success: true,
                 message: 'Usuario actualizado exitosamente',
@@ -158,30 +222,14 @@ export const useUsers = () => {
         }
     };
 
-    const filterUsers = (searchTerm = '', roleFilter = 'all') => {
-        const filtered = allUsers.filter(user => {
-            const matchesSearch = searchTerm === '' ||
-                user.f_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.f_lastname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesRole = roleFilter === 'all' ||
-                user.role?.name?.toLowerCase() === roleFilter;
-
-            return matchesSearch && matchesRole;
-        });
-
-        setFilteredUsers(filtered);
-        setCurrentPage(1);
-    };
-
-    // Función para obtener información detallada de una escuela
+    // Función para obtener información de escuela
     const getSchoolInfo = async (schoolId) => {
         if (!schoolId) return null;
 
         try {
-            const school = schools.find(s => s.id === schoolId);
-            if (school) return school;
+            // Buscar en cache primero
+            const cachedSchool = schools.find(s => s.id === schoolId);
+            if (cachedSchool) return cachedSchool;
 
             // Si no está en cache, hacer fetch
             const response = await api.get(`/schools/${schoolId}`);
@@ -192,63 +240,64 @@ export const useUsers = () => {
         }
     };
 
-    // Función para obtener estudiantes específicos
+    // Función para obtener estudiantes por escuela
     const getStudentsBySchool = (schoolId) => {
         return students.filter(student => student.school_id === schoolId);
     };
 
-    // Función para cambiar de página
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
-
-    // Función para cambiar usuarios por página
+    // Función para cambiar cantidad de usuarios por página
     const handleUsersPerPageChange = (newPerPage) => {
         setUsersPerPage(newPerPage);
-        setCurrentPage(1);
+        setCurrentPage(1); // Resetear a página 1
     };
 
-    // Calcular usuarios para la página actual
-    const indexOfLastUser = currentPage * usersPerPage;
-    const indexOfFirstUser = indexOfLastUser - usersPerPage;
-    const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
-
-    // Calcular total de páginas
-    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-
+    // Cargar datos iniciales
     useEffect(() => {
         fetchData();
         fetchCurrentUser();
     }, []);
 
     return {
-        // Estados
-        users: allUsers, // Usuarios combinados
-        students, // Solo estudiantes
-        filteredUsers: currentUsers, // Usuarios filtrados y paginados
+        // Estados principales
+        users: allUsers,
+        students,
+
+        // Estados para tabla
+        filteredUsers: paginatedUsers, // Usuarios paginados para mostrar
+        allFilteredUsers: filteredUsers, // Todos los usuarios filtrados (sin paginar)
+
+        // Datos de referencia
         roles: filteredRoles,
         schools,
         currentUser,
+
+        // Estados de UI
         loading,
         error,
 
         // Paginación
         currentPage,
         usersPerPage,
-        totalUsers: filteredUsers.length,
+        totalUsers: filteredUsers.length, // Total de usuarios filtrados (para paginación)
         totalPages,
 
-        // Acciones
+        // Acciones principales
         fetchData,
         handleCreateUser,
         handleUpdateUser,
         filterUsers,
+
+        // Acciones de paginación
         handlePageChange,
         handleUsersPerPageChange,
         setCurrentPage,
 
-        // Nuevas funciones
+        // Funciones auxiliares
         getSchoolInfo,
-        getStudentsBySchool
+        getStudentsBySchool,
+
+        // Funciones para debug
+        getFilteredUsersCount: () => filteredUsers.length,
+        getAllUsersCount: () => allUsers.length
     };
 };
