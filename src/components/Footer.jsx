@@ -47,9 +47,8 @@ export default function Footer() {
           xmlns="http://www.w3.org/2000/svg"
           className="w-8 h-8"
         >
-          
           <rect width="24" height="24" rx="4" fill="#1E3A8A" />
-          
+
           <polygon points="9,7 9,17 17,12" fill="white" />
         </svg>
       ),

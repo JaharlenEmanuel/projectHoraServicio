@@ -9,11 +9,27 @@ import Profile from './pages/admin/Profile';
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import Login from './pages/Login';
 import LandingPage from "./components/LandingPage";
+import Servicios from "./pages/Servicios";
+import EstadosDeHoras from "./pages/EstadosDeHoras"; 
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
+    <BrowserRouter>
+      <div className="flex flex-col min-h-screen">
+        <Header />
+
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/servicios" element={<Servicios />} />
+          <Route path="/estado" element={<EstadosDeHoras />} />{" "}
+        </Routes>
+
+        <Footer />
+      </div>
+    
+
     <Routes>
       {/* Ruta de login */}
       <Route path="/login" element={<Login />} />
@@ -36,7 +52,7 @@ function App() {
       {/* Ruta para cualquier otra URL no definida */}
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
-    
+    </BrowserRouter>
   );
 }
 
