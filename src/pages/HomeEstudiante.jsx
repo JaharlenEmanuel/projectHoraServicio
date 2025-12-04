@@ -2,7 +2,7 @@ import React from 'react';
 
 const HomeEstudiante = () => {
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-100">
+        <div className="grow flex flex-col items-center justify-center p-4 bg-gray-100">
             <div className="w-full max-w-4xl shadow-lg rounded-lg overflow-hidden">
                 <div style={{ position: 'relative', width: '100%', height: 0, paddingTop: '56.25%' }}>
                     <iframe

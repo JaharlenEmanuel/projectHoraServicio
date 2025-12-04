@@ -76,8 +76,9 @@ const AdminLayout = () => {
     const handleQuickLogout = () => {
         // Limpiar inmediatamente
         localStorage.removeItem('user');
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('user_role');
+        localStorage.removeItem('login_timestamp');
         sessionStorage.clear();
         setUser(null);
 
@@ -88,35 +89,7 @@ const AdminLayout = () => {
         });
     };
 
-    const handleLogout = async () => {
-        try {
-            console.log('Iniciando logout...');
 
-            // 1. Llamar al servicio de logout
-            await authLogout();
-
-            // 2. Limpiar todos los datos de almacenamiento
-            localStorage.removeItem('user');
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            sessionStorage.removeItem('token');
-
-            // 3. Limpiar estado local
-            setUser(null);
-
-            // 4. Redirigir al login con mensaje
-            console.log('Logout completado, redirigiendo...');
-            navigate('/login', {
-                replace: true,
-                state: { message: 'Sesión cerrada correctamente' }
-            });
-
-        } catch (error) {
-            console.error('Error durante logout:', error);
-            // Si falla el logout del servidor, usar la versión rápida
-            handleQuickLogout();
-        }
-    };
 
     // CORREGIR el menú - usar "/profile" en lugar de "/shared/Profile"
     const menuItems = [
@@ -223,7 +196,7 @@ const AdminLayout = () => {
                 </nav>
 
                 <div className="p-4 border-t border-gray-200">
-                    <p className="text-xs text-center text-gray-500">© 2024 FUNVAL • v1.0.0</p>
+                    <p className="text-xs text-center text-gray-500">© 2025 FUNVAL </p>
                 </div>
             </div>
 
