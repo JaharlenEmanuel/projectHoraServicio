@@ -123,19 +123,23 @@ const Reports = () => {
 
             {/* Contenido según pestaña */}
             {activeTab === 'pending' && (
-                <ReportTable
-                    reports={pendingReports}
-                    type="pending"
-                    onReviewClick={openReviewModal}
-                />
+                <div className="overflow-x-auto bg-white rounded-lg shadow">
+                    <ReportTable
+                        reports={pendingReports}
+                        type="pending"
+                        onReviewClick={openReviewModal}
+                    />
+                </div>
             )}
 
             {activeTab === 'reviewed' && (
-                <ReportTable
-                    reports={reviewedReports}
-                    type="reviewed"
-                    onReviewClick={null}
-                />
+                <div className="overflow-x-auto bg-white rounded-lg shadow">
+                    <ReportTable
+                        reports={reviewedReports}
+                        type="reviewed"
+                        onReviewClick={null}
+                    />
+                </div>
             )}
 
             {/* Modal de Revisión */}

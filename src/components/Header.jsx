@@ -43,6 +43,8 @@ const Header = () => {
       navigate("/");
     } else if (item === "Contacto") {
       navigate("/contacto");
+    } else if (item === "Reportes") {
+      navigate("/estado");
     }
   };
 
@@ -105,7 +107,7 @@ const Header = () => {
 
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex space-x-7 text-lg text-blue-900 items-center">
-          {["Inicio", "Servicios", "Contacto"].map((item) => (
+          {["Inicio", "Servicios", "Contacto", ...(isLogged ? ["Reportes"] : [])].map((item) => (
             <span
               key={item}
               className="cursor-pointer transform transition hover:text-cyan-600 lg:active:scale-125"
@@ -154,7 +156,7 @@ const Header = () => {
         </button>
 
         <nav className="flex flex-col items-center justify-center h-full space-y-10 text-blue-900 text-2xl font-semibold">
-          {["Inicio", "Servicios", "Contacto"].map((item) => (
+          {["Inicio", "Servicios", "Contacto", ...(isLogged ? ["Reportes"] : [])].map((item) => (
             <span
               key={item}
               className="transition hover:text-cyan-600 active:scale-125 cursor-pointer"
