@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import LoginDropdown from "./LoginModal";
+import { checkAuth } from "../services/auth";
 import { logout } from "../services/auth";
 import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isLogged, setIsLogged] = useState(false);
+
   const navigate = useNavigate();
+
+  const updateLoginStatus = async () => {
+    const { isAuthenticated } = await checkAuth();
+    setIsLogged(isAuthenticated);
+  };
+
+  useEffect(() => {
+    updateLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    const listener = () => updateLoginStatus();
+    window.addEventListener("storage", listener);
+    return () => window.removeEventListener("storage", listener);
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);
@@ -14,24 +35,14 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login');
-      localStorage.removeItem('user');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_role');
-      localStorage.removeItem('user_data');
-      localStorage.removeItem('login_timestamp');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      // Aún así redirigir al login
-    }
-  };
-
 
   const handleNavigation = (item) => {
     setIsMenuOpen(false);
+    if (item === "Servicios") navigate("/servicios");
+    if (item === "Inicio") navigate("/");
+    if (item === "Contacto")
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+  };
 
     if (item === "Servicios") {
       navigate("/servicios");
@@ -41,6 +52,20 @@ const Header = () => {
 
       navigate("/contacto");
     }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    localStorage.removeItem("user_data");
+
+    setIsLogged(false);
+    setIsLoginOpen(false);
+
+    navigate("/login");
+  };
+
+  const toggleLoginMenu = () => {
+    setIsLoginOpen((prev) => !prev);
   };
 
   return (
@@ -109,18 +134,27 @@ const Header = () => {
             </button>
           </div>
 
+          <button onClick={toggleLoginMenu}>
+            <img
+              src="/usuario.png"
+              alt="Login"
+              className="h-10 w-10 ml-4 cursor-pointer hover:scale-110 transition"
+            />
+          </button>
         </nav>
       </div>
 
-
       <div
-        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${isMenuOpen
-          ? "scale-100 rotate-0 opacity-100"
-          : "scale-0 -rotate-12 opacity-0"
+        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br 
+          from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500
+          ${
+            isMenuOpen
+              ? "scale-100 rotate-0 opacity-100"
+              : "scale-0 -rotate-12 opacity-0"
           }`}
       >
         <button
-          className="absolute top-6 right-6 text-blue-900 focus:outline-none"
+          className="absolute top-6 right-6 text-blue-900"
           onClick={() => setIsMenuOpen(false)}
         >
           <svg
@@ -143,14 +177,23 @@ const Header = () => {
           {["Inicio", "Servicios", "Contacto"].map((item) => (
             <span
               key={item}
-              className="inline-block transform transition hover:text-cyan-600 active:scale-125 cursor-pointer"
+              className="transition hover:text-cyan-600 active:scale-125 cursor-pointer"
               onClick={() => handleNavigation(item)}
             >
               {item}
             </span>
           ))}
-
         </nav>
+      </div>
+
+      <div className="absolute right-6 top-20 lg:right-10 lg:top-24">
+        <LoginDropdown
+          isOpen={isLoginOpen}
+          isLogged={isLogged}
+          onLogin={() => navigate("/login")}
+          onProfile={() => navigate("/profile")}
+          onLogout={handleLogout}
+        />
       </div>
     </header>
   );

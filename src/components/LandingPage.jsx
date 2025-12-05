@@ -13,8 +13,9 @@ export default function LandingPage() {
   }, []);
 
   const log = () => {
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
+
   return (
     <div className="relative min-h-screen">
       <div

@@ -74,6 +74,37 @@ export default function Servicios() {
           animation: gelatina 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
         }
       `}</style>
+      {/* Estilos dentro del componente sin jsx/global */}
+      <style>
+        {`
+          @keyframes gelatina {
+            0% {
+              transform: translateY(-300px) scaleX(0.8) scaleY(1.2);
+              filter: drop-shadow(0 0 20px #00ffff);
+            }
+            30% {
+              transform: translateY(0) scaleX(1.1) scaleY(0.9);
+              filter: drop-shadow(0 0 40px #00ffff);
+            }
+            50% {
+              transform: translateY(-20px) scaleX(0.95) scaleY(1.05);
+              filter: drop-shadow(0 0 35px #00ffff);
+            }
+            70% {
+              transform: translateY(10px) scaleX(1.02) scaleY(0.98);
+              filter: drop-shadow(0 0 30px #00ffff);
+            }
+            100% {
+              transform: translateY(0) scaleX(1) scaleY(1);
+              filter: drop-shadow(0 0 25px #00ffff);
+            }
+          }
+
+          .gelatinaNeon {
+            animation: gelatina 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+          }
+        `}
+      </style>
     </div>
   );
 }
