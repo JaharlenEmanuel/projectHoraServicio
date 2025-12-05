@@ -117,7 +117,7 @@ const Header = () => {
             </span>
           ))}
           <div className="flex items-center space-x-3">
-            <NotificationBell />
+            {isLogged && <NotificationBell />}
             <button onClick={toggleLoginMenu}>
               <img
                 src="/usuario.png"
