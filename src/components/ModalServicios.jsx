@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNotifications } from '../context/NotificacionContext';
 import { api } from '../services/api';
 
-export default function ModalService({ isOpen, onClose }) {
+export default function ModalService({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
     amount_reported: "", // Cambiado de 'cantidad'
     description: "",     // Cambiado de 'descripcion'
@@ -157,6 +157,7 @@ export default function ModalService({ isOpen, onClose }) {
       // Resetear formulario después de 2 segundos
       setTimeout(() => {
         resetForm();
+        if (onSuccess) onSuccess();
         onClose();
       }, 2000);
 
