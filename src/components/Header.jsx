@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../services/auth";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,22 +12,22 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  const handleQuickLogout = () => {
-    // Limpiar inmediatamente
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('login_timestamp');
 
-    sessionStorage.clear();
-
-    // Redirigir inmediatamente
-    navigate('/login', {
-      replace: true,
-      state: { message: 'Sesión cerrada correctamente' }
-    });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      localStorage.removeItem('user_role');
+      localStorage.removeItem('user_data');
+      localStorage.removeItem('login_timestamp');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      // Aún así redirigir al login
+    }
   };
+
 
   const handleNavigation = (item) => {
     setIsMenuOpen(false);
@@ -78,7 +79,7 @@ const Header = () => {
         <img
           src="/usuario.png"
           alt="Login"
-          onClick={handleQuickLogout}
+          onClick={handleLogout}
           className="md:block lg:hidden h-10 w-10 object-contain cursor-pointer hover:scale-110 transition relative -mr-4 sm:-mr-6"
         />
 
@@ -95,7 +96,7 @@ const Header = () => {
           <div >
 
             <button
-              onClick={handleQuickLogout}
+              onClick={handleLogout}
             >
               <img
                 src="/usuario.png"

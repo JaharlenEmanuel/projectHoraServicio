@@ -73,20 +73,19 @@ const AdminLayout = () => {
     }, [navigate, location.pathname]);
 
     // Función para cerrar sesión inmediatamente (sin esperar respuesta)
-    const handleQuickLogout = () => {
-        // Limpiar inmediatamente
-        localStorage.removeItem('user');
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('user_role');
-        localStorage.removeItem('login_timestamp');
-        sessionStorage.clear();
-        setUser(null);
-
-        // Redirigir inmediatamente
-        navigate('/login', {
-            replace: true,
-            state: { message: 'Sesión cerrada correctamente' }
-        });
+    const handleLogout = async () => {
+        try {
+            await logout();
+            navigate('/login');
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user_role');
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('login_timestamp');
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            // Aún así redirigir al login
+        }
     };
 
 
@@ -186,7 +185,7 @@ const AdminLayout = () => {
 
                     <div className="mt-8 pt-6 border-t border-gray-200">
                         <button
-                            onClick={handleQuickLogout} // Ahora está definida
+                            onClick={handleLogout}
                             className="flex items-center w-full px-3 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
                         >
                             <span className="text-xl mr-3 group-hover:animate-pulse">🚪</span>

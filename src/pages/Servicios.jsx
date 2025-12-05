@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import Cards from "../components/Cards";
+import { logout } from "../services/auth";
 
 export default function Servicios() {
   const [animate, setAnimate] = useState(false);
@@ -37,9 +38,8 @@ export default function Servicios() {
           <img
             src="/presentacion.png"
             alt="Presentación"
-            className={`w-full rounded-3xl shadow-2xl hover:scale-105 hover:rotate-1 transition-transform duration-700 ${
-              animate ? "gelatinaNeon" : ""
-            }`}
+            className={`w-full rounded-3xl shadow-2xl hover:scale-105 hover:rotate-1 transition-transform duration-700 ${animate ? "gelatinaNeon" : ""
+              }`}
             style={{ height: "auto" }}
           />
         </div>
