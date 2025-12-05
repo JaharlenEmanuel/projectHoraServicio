@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/auth";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -38,10 +39,7 @@ const Header = () => {
       navigate("/");
     } else if (item === "Contacto") {
 
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: "smooth",
-      });
+      navigate("/contacto");
     }
   };
 
@@ -76,13 +74,18 @@ const Header = () => {
           />
         </div>
 
-        <img
-          src="/usuario.png"
-          alt="Login"
-          onClick={handleLogout}
-          className="md:block lg:hidden h-10 w-10 object-contain cursor-pointer hover:scale-110 transition relative -mr-4 sm:-mr-6"
-        />
+        {/* Mobile: Notification Bell + User Icon */}
+        <div className="md:flex lg:hidden items-center space-x-2 -mr-4 sm:-mr-6">
+          <NotificationBell />
+          <img
+            src="/usuario.png"
+            alt="Login"
+            onClick={handleLogout}
+            className="h-10 w-10 object-contain cursor-pointer hover:scale-110 transition"
+          />
+        </div>
 
+        {/* Desktop Navigation */}
         <nav className="hidden lg:flex space-x-7 text-lg text-blue-900 items-center">
           {["Inicio", "Servicios", "Contacto"].map((item) => (
             <span
@@ -93,15 +96,15 @@ const Header = () => {
               {item}
             </span>
           ))}
-          <div >
-
+          <div className="flex items-center space-x-3">
+            <NotificationBell />
             <button
               onClick={handleLogout}
             >
               <img
                 src="/usuario.png"
                 alt="Login"
-                className="h-10 w-10 object-contain ml-4 cursor-pointer hover:scale-110 transition"
+                className="h-10 w-10 object-contain cursor-pointer hover:scale-110 transition"
               />
             </button>
           </div>

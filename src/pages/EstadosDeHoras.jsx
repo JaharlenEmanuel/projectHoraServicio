@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getReports } from '../services/api';
 import { getProfile } from '../services/auth';
+import { useNotifications } from '../context/NotificacionContext';
 
 export default function EstadosDeHoras() {
   const [services, setServices] = useState([]);
@@ -9,6 +10,7 @@ export default function EstadosDeHoras() {
   const [error, setError] = useState('');
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const { checkForNewComments } = useNotifications();
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,6 +34,9 @@ export default function EstadosDeHoras() {
       if (response.data) {
         console.log('Servicios cargados:', response.data);
         setServices(response.data);
+
+        // comentarios de admin
+        checkForNewComments(response.data);
       } else {
         setError('No se pudieron cargar los servicios');
       }

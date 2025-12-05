@@ -15,14 +15,21 @@ export const useNotifications = () => {
 export const NotificationProvider = ({ children }) => {
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [checkedServices, setCheckedServices] = useState(new Set());
 
     // Cargar notificaciones desde localStorage al iniciar
     useEffect(() => {
         const storedNotifications = localStorage.getItem('notifications');
+        const storedCheckedServices = localStorage.getItem('checkedServices');
+
         if (storedNotifications) {
             const parsed = JSON.parse(storedNotifications);
             setNotifications(parsed);
             setUnreadCount(parsed.filter(n => !n.read).length);
+        }
+
+        if (storedCheckedServices) {
+            setCheckedServices(new Set(JSON.parse(storedCheckedServices)));
         }
     }, []);
 
@@ -32,7 +39,12 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(notifications.filter(n => !n.read).length);
     }, [notifications]);
 
-    // Agregar notificación (se llamará cuando un estudiante cree un servicio)
+    // Guardar servicios verificados en localStorage
+    useEffect(() => {
+        localStorage.setItem('checkedServices', JSON.stringify([...checkedServices]));
+    }, [checkedServices]);
+
+    // Agregar notificación de nuevo servicio (se llamará cuando un estudiante cree un servicio)
     const addNotification = (notification) => {
         const user = getStoredUser();
         const newNotification = {
@@ -43,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
             message: notification.message || 'Has creado un nuevo servicio exitosamente.',
             timestamp: new Date().toISOString(),
             read: false,
-            link: '/servicios' // Redirige a la página de servicios
+            link: '/servicios'
         };
 
         setNotifications(prev => [newNotification, ...prev]);
@@ -55,6 +67,63 @@ export const NotificationProvider = ({ children }) => {
                 icon: '/logo.png'
             });
         }
+    };
+
+    // Agregar notificación de comentario de admin
+    const addCommentNotification = (serviceId, serviceName, comment) => {
+        const user = getStoredUser();
+        const newNotification = {
+            id: Date.now() + Math.random(), // Asegurar ID único
+            userId: user?.id || 'unknown',
+            type: 'admin_comment',
+            serviceId: serviceId,
+            title: '💬 Nuevo Comentario del Administrador',
+            message: `El administrador comentó en "${serviceName}": "${comment.substring(0, 80)}${comment.length > 80 ? '...' : ''}"`,
+            timestamp: new Date().toISOString(),
+            read: false,
+            link: '/servicios'
+        };
+
+        setNotifications(prev => {
+            // Evitar duplicados para el mismo servicio
+            const exists = prev.some(n =>
+                n.type === 'admin_comment' &&
+                n.serviceId === serviceId &&
+                !n.read
+            );
+
+            if (exists) return prev;
+            return [newNotification, ...prev];
+        });
+
+        // Notificación del sistema
+        if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('Nuevo Comentario', {
+                body: newNotification.message,
+                icon: '/logo.png'
+            });
+        }
+    };
+
+    // Verificar servicios en busca de nuevos comentarios
+    const checkForNewComments = (services) => {
+        if (!services || !Array.isArray(services)) return;
+
+        services.forEach(service => {
+            // Solo procesar si el servicio tiene comentario y no ha sido verificado
+            if (service.comment && service.comment.trim() !== '') {
+                const serviceKey = `${service.id}-${service.comment}`;
+
+                // Si no hemos visto este comentario antes, crear notificación
+                if (!checkedServices.has(serviceKey)) {
+                    const serviceName = service.description?.substring(0, 50) || `Servicio #${service.id}`;
+                    addCommentNotification(service.id, serviceName, service.comment);
+
+                    // Marcar como verificado
+                    setCheckedServices(prev => new Set([...prev, serviceKey]));
+                }
+            }
+        });
     };
 
     // Marcar notificación como leída
@@ -96,6 +165,8 @@ export const NotificationProvider = ({ children }) => {
                 notifications,
                 unreadCount,
                 addNotification,
+                addCommentNotification,
+                checkForNewComments,
                 markAsRead,
                 markAllAsRead,
                 removeNotification,

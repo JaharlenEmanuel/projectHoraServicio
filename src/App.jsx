@@ -10,6 +10,7 @@ import Categories from './pages/admin/Categories';
 import Servicios from './pages/Servicios';
 import EstadosDeHoras from './pages/EstadosDeHoras'; // Asegúrate de importar esta página
 import Profile from './pages/shared/Profile'; // Si tienes página de perfil
+import Contact from './pages/Contact';
 import LandingPage from './components/LandingPage';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -31,6 +32,15 @@ function App() {
 
           {/* Ruta de login - pública */}
           <Route path="/login" element={<Login />} />
+
+          {/* Ruta de contacto - pública */}
+          <Route path="/contacto" element={
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <Contact />
+              <Footer />
+            </div>
+          } />
 
           {/* ===== RUTAS PROTEGIDAS PARA ESTUDIANTES ===== */}
 
