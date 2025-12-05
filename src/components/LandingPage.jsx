@@ -24,13 +24,13 @@ export default function LandingPage() {
       ></div>
 
       {/* Canva */}
-      <div className="flex flex-col items-center justify-center p-4 pt-8">
+      <div className="flex flex-col items-center justify-center p-2 pt-4 md:p-4 md:pt-8 mb-4 md:mb-0">
         <div className="w-full max-w-3xl 2xl:max-w-5xl shadow-lg rounded-lg overflow-hidden bg-white">
           <div style={{ position: 'relative', width: '100%', height: 0, paddingTop: '56.25%' }}>
             <iframe
               loading="lazy"
               style={{ position: 'absolute', width: '100%', height: '100%', top: 0, left: 0, border: 'none', padding: 0, margin: 0 }}
-              src="https://www.canva.com/design/DAF7qbeV58w/yLZ0glEC1sJFuwqIcOzkrA/view?embed"
+              src="https://www.canva.com/design/DAF7qbeV58w/yLZ0glEC1sJFuwqIcOzkrA/view?embed&autoplay=true"
               allowFullScreen={true}
               allow="fullscreen"
               title="Canva Presentation"
@@ -40,7 +40,7 @@ export default function LandingPage() {
       </div>
 
       {/* Video */}
-      <div className="w-full min-h-screen flex flex-col justify-center items-center p-4">
+      <div className="w-full min-h-[60vh] md:min-h-screen flex flex-col justify-center items-center p-2 md:p-4">
         <div
           className="bg-black bg-opacity-30 p-2 rounded-xl shadow-2xl w-full max-w-3xl 2xl:max-w-5xl 2xl:p-6 2xl:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7)]"
           style={{ aspectRatio: "16/9" }}

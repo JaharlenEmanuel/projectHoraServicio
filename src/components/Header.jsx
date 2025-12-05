@@ -94,7 +94,7 @@ const Header = () => {
         </div>
 
         {/* Mobile: Notification Bell + User Icon */}
-        <div className="md:flex lg:hidden items-center space-x-2 -mr-4 sm:-mr-6">
+        <div className="md:flex lg:hidden items-center space-x-3 -mr-4 sm:-mr-6">
           <NotificationBell />
           <img
             src="/usuario.png"
@@ -130,8 +130,8 @@ const Header = () => {
 
       <div
         className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${isMenuOpen
-            ? "scale-100 rotate-0 opacity-100"
-            : "scale-0 -rotate-12 opacity-0"
+          ? "scale-100 rotate-0 opacity-100"
+          : "scale-0 -rotate-12 opacity-0"
           }`}
       >
         <button
