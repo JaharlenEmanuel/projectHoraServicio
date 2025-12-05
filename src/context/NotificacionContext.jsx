@@ -55,7 +55,7 @@ export const NotificationProvider = ({ children }) => {
             message: notification.message || 'Has creado un nuevo servicio exitosamente.',
             timestamp: new Date().toISOString(),
             read: false,
-            link: '/servicios'
+            link: '/estado'
         };
 
         setNotifications(prev => [newNotification, ...prev]);
@@ -81,7 +81,7 @@ export const NotificationProvider = ({ children }) => {
             message: `El administrador comentó en "${serviceName}": "${comment.substring(0, 80)}${comment.length > 80 ? '...' : ''}"`,
             timestamp: new Date().toISOString(),
             read: false,
-            link: '/servicios'
+            link: '/estado'
         };
 
         setNotifications(prev => {
