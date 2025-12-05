@@ -83,7 +83,7 @@ export const deleteUser = (id) => api.delete(`/users/${id}`);
 
 // Categorías
 export const getCategories = () => api.get('/categories');
-export const createCategory = (data) => api.post('/categories', data);
+export const createCategory = (data) => api.post('/categories/', data);
 export const updateCategory = (id, name) => api.put(`/categories/${id}`, { name });
 export const deleteCategory = (id) => api.delete(`/categories/${id}`);
 

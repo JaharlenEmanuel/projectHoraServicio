@@ -41,41 +41,41 @@ const Dashboard = () => {
     if (loading) return <div>Cargando estadísticas...</div>;
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold mb-6">Dashboard Admin</h1>
+        <div className="p-4 md:p-6 lg:p-8">
+            <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800">Dashboard Admin</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-gray-500">Total Usuarios</h3>
-                    <p className="text-3xl font-bold">{stats.users}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h3 className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Usuarios</h3>
+                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.users}</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-gray-500">Total Reportes</h3>
-                    <p className="text-3xl font-bold">{stats.reports}</p>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h3 className="text-gray-500 font-medium text-sm uppercase tracking-wide">Total Reportes</h3>
+                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.reports}</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-gray-500">Reportes Pendientes</h3>
-                    <p className="text-3xl font-bold text-orange-500">{stats.pending}</p>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h3 className="text-gray-500 font-medium text-sm uppercase tracking-wide">Reportes Pendientes</h3>
+                    <p className="text-3xl font-bold text-orange-500 mt-2">{stats.pending}</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-lg shadow">
-                    <h3 className="text-gray-500">Categorías</h3>
-                    <p className="text-3xl font-bold">{stats.categories}</p>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <h3 className="text-gray-500 font-medium text-sm uppercase tracking-wide">Categorías</h3>
+                    <p className="text-3xl font-bold text-gray-800 mt-2">{stats.categories}</p>
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4">Acciones Rápidas</h2>
-                <div className="flex gap-4">
-                    <a href="/admin/users" className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold mb-6 text-gray-800">Acciones Rápidas</h2>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <a href="/admin/users" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition  text-center font-medium shadow-sm hover:shadow">
                         Gestionar Usuarios
                     </a>
-                    <a href="/admin/reports" className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                    <a href="/admin/reports" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition text-center font-medium shadow-sm hover:shadow">
                         Ver Reportes
                     </a>
-                    <a href="/admin/categories" className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    <a href="/admin/categories" className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition text-center font-medium shadow-sm hover:shadow">
                         Editar Categorías
                     </a>
                 </div>
