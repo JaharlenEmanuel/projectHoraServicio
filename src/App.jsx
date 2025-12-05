@@ -8,13 +8,12 @@ import Users from './pages/admin/Users';
 import Reports from './pages/admin/Reports';
 import Categories from './pages/admin/Categories';
 import Servicios from './pages/Servicios';
-import EstadosDeHoras from './pages/EstadosDeHoras'; // Asegúrate de importar esta página
-import Profile from './pages/shared/Profile'; // Si tienes página de perfil
+import EstadosDeHoras from './pages/EstadosDeHoras';
+import Profile from './pages/shared/Profile';
 import Contact from './pages/Contact';
 import LandingPage from './components/LandingPage';
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import Profile from "./pages/shared/Profile";
 import { NotificationProvider } from "./context/NotificacionContext";
 
 function App() {
@@ -45,50 +44,32 @@ function App() {
 
           {/* ===== RUTAS PROTEGIDAS PARA ESTUDIANTES ===== */}
 
+          {/* Ruta de perfil - para cualquier usuario autenticado */}
+          <Route path="/profile" element={
+            <AuthGuard>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="grow">
+                  <Profile />
+                </main>
+                <Footer />
+              </div>
+            </AuthGuard>
+          } />
+
           {/* Ruta de servicios - SOLO para estudiantes */}
           <Route path="/servicios" element={
             <AuthGuard requiredRole="student">
               <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="grow">
-                  <LandingPage />
+                  <Servicios />
                 </main>
                 <Footer />
               </div>
-            }
-          />
+            </AuthGuard>
+          } />
 
-          <Route path="/login" element={<Login />} />
-
-          <Route
-            path="/profile"
-            element={
-              <AuthGuard >
-                <div className="flex flex-col min-h-screen">
-                  <Header />
-                  <main className="grow">
-                    <Profile />
-                  </main>
-                  <Footer />
-                </div>
-              </AuthGuard>
-            }
-          />
-
-          <Route
-            path="/servicios"
-            element={
-              <AuthGuard requiredRole="student">
-                <div className="flex flex-col min-h-screen">
-                  <Header />
-                  <main className="grow">
-                    <Servicios />
-                  </main>
-                  <Footer />
-                </div>
-              </AuthGuard>
-            }
-          />
           {/* Ruta de estado - SOLO para estudiantes */}
           <Route path="/estado" element={
             <AuthGuard requiredRole="student">
@@ -100,30 +81,26 @@ function App() {
             </AuthGuard>
           } />
 
-          <Route
-            path="/admin"
-            element={
-              <AuthGuard requiredRole="admin">
-                <Navigate to="/admin" replace />
-              </AuthGuard>
-            }
-          />
+          {/* ===== RUTAS PROTEGIDAS PARA ADMIN ===== */}
 
-          <Route
-            path="/admin/*"
-            element={
-              <AuthGuard requiredRole="admin">
-                <AdminLayout />
-              </AuthGuard>
-            }
-          >
+          <Route path="/admin" element={
+            <AuthGuard requiredRole="admin">
+              <Navigate to="/admin/dashboard" replace />
+            </AuthGuard>
+          } />
+
+          <Route path="/admin/*" element={
+            <AuthGuard requiredRole="admin">
+              <AdminLayout />
+            </AuthGuard>
+          }>
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<Users />} />
             <Route path="reports" element={<Reports />} />
             <Route path="categories" element={<Categories />} />
           </Route>
 
-          {/* Redireccion */}
+          {/* Redirecciones */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </NotificationProvider>
