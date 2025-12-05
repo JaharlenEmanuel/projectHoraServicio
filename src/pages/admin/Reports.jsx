@@ -37,9 +37,16 @@ const Reports = () => {
                     }
                 });
 
+                // Sort both arrays from newest to oldest
+                const sortByDate = (a, b) => {
+                    const dateA = new Date(a.created_at || a.date || 0);
+                    const dateB = new Date(b.created_at || b.date || 0);
+                    return dateB - dateA;
+                };
+
                 setReports(res.data);
-                setPendingReports(pending);
-                setReviewedReports(reviewed);
+                setPendingReports(pending.sort(sortByDate));
+                setReviewedReports(reviewed.sort(sortByDate));
             }
         } catch (error) {
             console.error('Error:', error);
