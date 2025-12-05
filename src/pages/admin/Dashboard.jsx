@@ -22,7 +22,8 @@ const Dashboard = () => {
                 getCategories()
             ]);
 
-            const pending = reportsRes.data.filter(r => r.status === 'pending').length;
+            const pending = reportsRes.data.filter(r => r.status === 'Pending').length;
+            console.log(pending)
 
             setStats({
                 users: usersRes.data.length,
