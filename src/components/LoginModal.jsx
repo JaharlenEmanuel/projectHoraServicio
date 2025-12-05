@@ -40,10 +40,8 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
 
   const handleNotificationClick = (notification) => {
     markAsRead(notification.id);
-    if (notification.link) {
-      navigate(notification.link);
-      onClose();
-    }
+    navigate('/estado');
+    onClose();
   };
 
   const handleLogout = async () => {
