@@ -1,224 +1,230 @@
-import React, { useState, useEffect } from "react";
-import { getProfile, changePassword } from "../../services/auth";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { getProfile, changePassword } from '../../services/auth';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
   const [passwordForm, setPasswordForm] = useState({
-    old: "",
-    new: "",
-    confirm: "",
+    old: '',
+    new: '',
+    confirm: ''
   });
-  const [message, setMessage] = useState({ text: "", type: "" });
+  const [message, setMessage] = useState({ text: '', type: '' });
   const [loading, setLoading] = useState({ profile: false, password: false });
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+
+    // Guardar la ruta de referencia
+    if (location.state?.from) {
+      sessionStorage.setItem('previousRoute', location.state.from);
+    }
+  }, [location.state]);
 
   const fetchProfile = async () => {
     try {
-      setLoading((prev) => ({ ...prev, profile: true }));
-      setMessage({ text: "", type: "" });
+      setLoading(prev => ({ ...prev, profile: true }));
+      setMessage({ text: '', type: '' });
 
-      
+      // INTENTAR obtener perfil desde la API
       try {
         const response = await getProfile();
-        console.log("Profile API Response:", response);
+        console.log('Profile API Response:', response);
 
         if (response.status === 200 && response.data) {
           const userData = response.data;
 
-          
-          const userRole =
-            localStorage.getItem("role") ||
+          // Determinar el rol
+          const userRole = localStorage.getItem('role') ||
             userData.role ||
-            (userData.role_id === 1 ? "admin" : "student");
+            (userData.role_id === 1 ? 'admin' : 'student');
 
           const formattedProfile = {
             id: userData.id,
-            name:
-              userData.name ||
-              userData.full_name ||
-              userData.username ||
-              "Usuario",
+            name: userData.name || userData.full_name || userData.username || 'Usuario',
             email: userData.email,
             role: userRole,
             originalRole: userRole,
-            ...userData,
+            ...userData
           };
 
           setProfile(formattedProfile);
-          localStorage.setItem("user", JSON.stringify(formattedProfile));
+          localStorage.setItem('user', JSON.stringify(formattedProfile));
 
           setMessage({
-            text: "✅ Perfil cargado correctamente",
-            type: "success",
+            text: '✅ Perfil cargado correctamente',
+            type: 'success'
           });
 
           setTimeout(() => {
-            setMessage({ text: "", type: "" });
+            setMessage({ text: '', type: '' });
           }, 3000);
-          return; 
+          return; // Salir si se cargó correctamente
         }
       } catch (apiError) {
-        console.log("API call failed, trying localStorage:", apiError);
+        console.log('API call failed, trying localStorage:', apiError);
       }
 
-      const storedUser = localStorage.getItem("user");
+      // SI FALLA LA API, intentar obtener de localStorage
+      const storedUser = localStorage.getItem('user');
       if (storedUser) {
         try {
           const parsedUser = JSON.parse(storedUser);
           setProfile(parsedUser);
           setMessage({
-            text: "ℹ️ Mostrando datos almacenados localmente",
-            type: "info",
+            text: 'ℹ️ Mostrando datos almacenados localmente',
+            type: 'info'
           });
         } catch (parseError) {
-          console.error("Error parsing stored user:", parseError);
-          
+          console.error('Error parsing stored user:', parseError);
+          // Crear un perfil por defecto
           createDefaultProfile();
         }
       } else {
-        
+        // Si no hay nada en localStorage, crear perfil por defecto
         createDefaultProfile();
       }
+
     } catch (error) {
-      console.error("Profile fetch error:", error);
+      console.error('Profile fetch error:', error);
       createDefaultProfile();
     } finally {
-      setLoading((prev) => ({ ...prev, profile: false }));
+      setLoading(prev => ({ ...prev, profile: false }));
     }
   };
 
-  
+  // Función para crear un perfil por defecto
   const createDefaultProfile = () => {
     const defaultProfile = {
-      id: "guest-001",
-      name: "Usuario Invitado",
-      email: "invitado@ejemplo.com",
-      role: "guest",
-      department: "No asignado",
+      id: 'guest-001',
+      name: 'Usuario Invitado',
+      email: 'invitado@ejemplo.com',
+      role: 'guest',
+      department: 'No asignado'
     };
     setProfile(defaultProfile);
     setMessage({
-      text: "👤 Modo invitado activado. Inicia sesión para ver tu perfil completo.",
-      type: "warning",
+      text: '👤 Modo invitado activado. Inicia sesión para ver tu perfil completo.',
+      type: 'warning'
     });
   };
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
-    setMessage({ text: "", type: "" });
+    setMessage({ text: '', type: '' });
 
-    
-    if (profile?.role === "guest") {
+    // Si es usuario invitado, mostrar mensaje
+    if (profile?.role === 'guest') {
       setMessage({
-        text: "❌ Debes iniciar sesión para cambiar la contraseña",
-        type: "error",
+        text: '❌ Debes iniciar sesión para cambiar la contraseña',
+        type: 'error'
       });
       return;
     }
 
-    
+    // Validaciones
     const validations = [
-      {
-        condition: !passwordForm.old.trim(),
-        message: "❌ Por favor ingrese su contraseña actual",
-      },
-      {
-        condition: !passwordForm.new.trim(),
-        message: "❌ Por favor ingrese la nueva contraseña",
-      },
-      {
-        condition: passwordForm.new.length < 6,
-        message: "❌ La contraseña debe tener al menos 6 caracteres",
-      },
-      {
-        condition: passwordForm.new !== passwordForm.confirm,
-        message: "❌ Las contraseñas no coinciden",
-      },
-      {
-        condition: passwordForm.old === passwordForm.new,
-        message: "❌ La nueva contraseña debe ser diferente a la actual",
-      },
+      { condition: !passwordForm.old.trim(), message: '❌ Por favor ingrese su contraseña actual' },
+      { condition: !passwordForm.new.trim(), message: '❌ Por favor ingrese la nueva contraseña' },
+      { condition: passwordForm.new.length < 6, message: '❌ La contraseña debe tener al menos 6 caracteres' },
+      { condition: passwordForm.new !== passwordForm.confirm, message: '❌ Las contraseñas no coinciden' },
+      { condition: passwordForm.old === passwordForm.new, message: '❌ La nueva contraseña debe ser diferente a la actual' }
     ];
 
     for (const validation of validations) {
       if (validation.condition) {
-        setMessage({ text: validation.message, type: "error" });
+        setMessage({ text: validation.message, type: 'error' });
         return;
       }
     }
 
-    setLoading((prev) => ({ ...prev, password: true }));
+    setLoading(prev => ({ ...prev, password: true }));
 
     try {
       const response = await changePassword(passwordForm.old, passwordForm.new);
-      console.log("Password change response:", response);
+      console.log('Password change response:', response);
 
       if (response.status === 200) {
         setMessage({
-          text: "✅ Contraseña cambiada exitosamente",
-          type: "success",
+          text: '✅ Contraseña cambiada exitosamente',
+          type: 'success'
         });
 
-        setPasswordForm({ old: "", new: "", confirm: "" });
+        setPasswordForm({ old: '', new: '', confirm: '' });
 
         setTimeout(() => {
-          if (
-            window.confirm(
-              "¿Deseas cerrar sesión para aplicar los cambios? Se recomienda iniciar sesión con tu nueva contraseña."
-            )
-          ) {
+          if (window.confirm('¿Deseas cerrar sesión para aplicar los cambios? Se recomienda iniciar sesión con tu nueva contraseña.')) {
             handleLogout();
           }
         }, 1500);
       } else {
         setMessage({
-          text:
-            "❌ Error: " +
-            (response.data?.message || "No se pudo cambiar la contraseña"),
-          type: "error",
+          text: '❌ Error: ' + (response.data?.message || 'No se pudo cambiar la contraseña'),
+          type: 'error'
         });
       }
     } catch (error) {
-      console.error("Password change error:", error);
+      console.error('Password change error:', error);
       setMessage({
-        text:
-          "❌ Error: " +
-          (error.response?.data?.message || "Error al cambiar la contraseña"),
-        type: "error",
+        text: '❌ Error: ' + (error.response?.data?.message || 'Error al cambiar la contraseña'),
+        type: 'error'
       });
     } finally {
-      setLoading((prev) => ({ ...prev, password: false }));
+      setLoading(prev => ({ ...prev, password: false }));
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("role");
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    sessionStorage.removeItem("token");
-    window.location.href = "/login";
+    localStorage.removeItem('role');
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('previousRoute');
+    window.location.href = '/login';
   };
 
-  
-  const goToDashboard = () => {
-    const role = profile?.originalRole || localStorage.getItem("role");
+  // Función para regresar a la página anterior
+  const handleGoBack = () => {
+    const previousRoute = sessionStorage.getItem('previousRoute');
 
-    if (role === "admin") {
-      navigate("/admin/dashboard");
-    } else if (role === "student") {
-      navigate("/student/dashboard");
+    if (previousRoute && previousRoute !== window.location.pathname) {
+      // Si tenemos una ruta guardada y no es la actual
+      navigate(previousRoute);
     } else {
-      navigate("/login");
+      // Si no hay ruta guardada, intentar usar el historial del navegador
+      if (window.history.length > 1) {
+        navigate(-1); // Ir a la página anterior en el historial
+      } else {
+        // Si no hay historial, ir según el rol
+        const role = profile?.originalRole || localStorage.getItem('role');
+        if (role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (role === 'student') {
+          navigate('/servicios');
+        } else {
+          navigate('/');
+        }
+      }
+    }
+  };
+
+  // Función para redirigir al dashboard según el rol
+  const goToDashboard = () => {
+    const role = profile?.originalRole || localStorage.getItem('role');
+
+    if (role === 'admin') {
+      navigate('/admin/dashboard');
+    } else if (role === 'student') {
+      navigate('/servicios');
+    } else {
+      navigate('/login');
     }
   };
 
   const goToLogin = () => {
-    navigate("/login");
+    navigate('/login');
   };
 
   if (loading.profile && !profile) {
@@ -232,30 +238,24 @@ const Profile = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-4">
-      
+      {/* Header con acciones */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Mi Perfil</h1>
           <p className="text-gray-500">
-            {profile?.role === "admin"
-              ? "Administrador"
-              : profile?.role === "student"
-              ? "Estudiante"
-              : profile?.role === "guest"
-              ? "Usuario Invitado"
-              : "Usuario"}
+            {profile?.role === 'admin' ? 'Administrador' :
+              profile?.role === 'student' ? 'Estudiante' :
+                profile?.role === 'guest' ? 'Usuario Invitado' : 'Usuario'}
           </p>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
-          {profile?.role !== "guest" ? (
+          {profile?.role !== 'guest' ? (
             <>
               <button
                 onClick={goToDashboard}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                {profile?.role === "admin"
-                  ? "Ir al Panel Admin"
-                  : "Ir al Dashboard"}
+                {profile?.role === 'admin' ? 'Ir al Panel Admin' : 'Ir a Servicios'}
               </button>
               <button
                 onClick={fetchProfile}
@@ -267,9 +267,7 @@ const Profile = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600 mr-2"></div>
                     Actualizando...
                   </>
-                ) : (
-                  "Actualizar"
-                )}
+                ) : 'Actualizar'}
               </button>
               <button
                 onClick={handleLogout}
@@ -291,26 +289,16 @@ const Profile = () => {
 
       {/* Mensajes */}
       {message.text && (
-        <div
-          className={`mb-6 p-4 rounded-lg ${
-            message.type === "success"
-              ? "bg-green-50 border border-green-200 text-green-800"
-              : message.type === "warning"
-              ? "bg-yellow-50 border border-yellow-200 text-yellow-800"
-              : message.type === "info"
-              ? "bg-blue-50 border border-blue-200 text-blue-800"
-              : "bg-red-50 border border-red-200 text-red-800"
-          }`}
-        >
+        <div className={`mb-6 p-4 rounded-lg ${message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-800' :
+          message.type === 'warning' ? 'bg-yellow-50 border border-yellow-200 text-yellow-800' :
+            message.type === 'info' ? 'bg-blue-50 border border-blue-200 text-blue-800' :
+              'bg-red-50 border border-red-200 text-red-800'
+          }`}>
           <div className="flex items-center">
             <span className="mr-2">
-              {message.type === "success"
-                ? "✅"
-                : message.type === "warning"
-                ? "⚠️"
-                : message.type === "info"
-                ? "ℹ️"
-                : "❌"}
+              {message.type === 'success' ? '✅' :
+                message.type === 'warning' ? '⚠️' :
+                  message.type === 'info' ? 'ℹ️' : '❌'}
             </span>
             <span>{message.text}</span>
           </div>
@@ -318,34 +306,20 @@ const Profile = () => {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
+        {/* Información del perfil */}
         <div className="bg-white p-6 rounded-xl shadow-lg">
           <div className="flex items-center mb-6">
-            <div
-              className={`h-12 w-12 rounded-full flex items-center justify-center mr-4 ${
-                profile?.role === "admin"
-                  ? "bg-purple-100"
-                  : profile?.role === "guest"
-                  ? "bg-gray-100"
-                  : "bg-blue-100"
-              }`}
-            >
-              <span
-                className={`font-bold text-xl ${
-                  profile?.role === "admin"
-                    ? "text-purple-600"
-                    : profile?.role === "guest"
-                    ? "text-gray-600"
-                    : "text-blue-600"
-                }`}
-              >
-                {profile?.name ? profile.name.charAt(0).toUpperCase() : "U"}
+            <div className={`h-12 w-12 rounded-full flex items-center justify-center mr-4 ${profile?.role === 'admin' ? 'bg-purple-100' :
+              profile?.role === 'guest' ? 'bg-gray-100' : 'bg-blue-100'
+              }`}>
+              <span className={`font-bold text-xl ${profile?.role === 'admin' ? 'text-purple-600' :
+                profile?.role === 'guest' ? 'text-gray-600' : 'text-blue-600'
+                }`}>
+                {profile?.name ? profile.name.charAt(0).toUpperCase() : 'U'}
               </span>
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                Información Personal
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800">Información Personal</h2>
               <p className="text-gray-500">Datos de tu cuenta</p>
             </div>
           </div>
@@ -353,35 +327,25 @@ const Profile = () => {
           <div className="space-y-4">
             <div className="pb-3 border-b border-gray-100">
               <p className="text-sm text-gray-500 mb-1">Nombre completo</p>
-              <p className="font-medium text-gray-800">
-                {profile?.name || "No disponible"}
-              </p>
+              <p className="font-medium text-gray-800">{profile?.name || 'No disponible'}</p>
             </div>
             <div className="pb-3 border-b border-gray-100">
               <p className="text-sm text-gray-500 mb-1">Correo electrónico</p>
-              <p className="font-medium text-gray-800">
-                {profile?.email || "No disponible"}
-              </p>
+              <p className="font-medium text-gray-800">{profile?.email || 'No disponible'}</p>
             </div>
             <div className="pb-3 border-b border-gray-100">
               <p className="text-sm text-gray-500 mb-1">Rol en el sistema</p>
               <p className="font-medium text-gray-800">
-                {profile?.role === "admin"
-                  ? "Administrador"
-                  : profile?.role === "student"
-                  ? "Estudiante"
-                  : profile?.role === "guest"
-                  ? "Usuario Invitado"
-                  : "Usuario"}
+                {profile?.role === 'admin' ? 'Administrador' :
+                  profile?.role === 'student' ? 'Estudiante' :
+                    profile?.role === 'guest' ? 'Usuario Invitado' : 'Usuario'}
               </p>
             </div>
 
-            {profile?.department && profile.department !== "No asignado" && (
+            {profile?.department && profile.department !== 'No asignado' && (
               <div className="pb-3 border-b border-gray-100">
                 <p className="text-sm text-gray-500 mb-1">Departamento</p>
-                <p className="font-medium text-gray-800">
-                  {profile.department}
-                </p>
+                <p className="font-medium text-gray-800">{profile.department}</p>
               </div>
             )}
 
@@ -394,22 +358,16 @@ const Profile = () => {
 
             <div>
               <p className="text-sm text-gray-500 mb-1">ID de usuario</p>
-              <p className="font-medium text-gray-800 font-mono">
-                {profile?.id || "No disponible"}
-              </p>
+              <p className="font-medium text-gray-800 font-mono">{profile?.id || 'No disponible'}</p>
             </div>
           </div>
         </div>
 
         {/* Cambio de contraseña - Solo mostrar si NO es guest */}
-        {profile?.role !== "guest" ? (
+        {profile?.role !== 'guest' ? (
           <div className="bg-white p-6 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">
-              Cambiar Contraseña
-            </h2>
-            <p className="text-gray-500 mb-6">
-              Por seguridad, tu contraseña debe tener al menos 6 caracteres.
-            </p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Cambiar Contraseña</h2>
+            <p className="text-gray-500 mb-6">Por seguridad, tu contraseña debe tener al menos 6 caracteres.</p>
 
             <form onSubmit={handlePasswordChange} className="space-y-5">
               <div>
@@ -419,16 +377,13 @@ const Profile = () => {
                 <input
                   type="password"
                   value={passwordForm.old}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, old: e.target.value })
-                  }
+                  onChange={(e) => setPasswordForm({ ...passwordForm, old: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   required
                   disabled={loading.password}
                   placeholder="••••••••"
                   autoComplete="new-password"
-                  readOnly
-                  onFocus={(e) => e.target.removeAttribute("readonly")}
+                  readOnly onFocus={(e) => e.target.removeAttribute('readonly')}
                   id="current-password-field"
                 />
               </div>
@@ -440,9 +395,7 @@ const Profile = () => {
                 <input
                   type="password"
                   value={passwordForm.new}
-                  onChange={(e) =>
-                    setPasswordForm({ ...passwordForm, new: e.target.value })
-                  }
+                  onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   required
                   disabled={loading.password}
@@ -460,12 +413,7 @@ const Profile = () => {
                 <input
                   type="password"
                   value={passwordForm.confirm}
-                  onChange={(e) =>
-                    setPasswordForm({
-                      ...passwordForm,
-                      confirm: e.target.value,
-                    })
-                  }
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                   required
                   disabled={loading.password}
@@ -486,18 +434,14 @@ const Profile = () => {
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Cambiando contraseña...
                   </div>
-                ) : (
-                  "Cambiar Contraseña"
-                )}
+                ) : 'Cambiar Contraseña'}
               </button>
             </form>
 
             <div className="mt-4 flex justify-end">
               <button
                 type="button"
-                onClick={() =>
-                  setPasswordForm({ old: "", new: "", confirm: "" })
-                }
+                onClick={() => setPasswordForm({ old: '', new: '', confirm: '' })}
                 className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
                 disabled={loading.password}
               >
@@ -509,12 +453,9 @@ const Profile = () => {
           <div className="bg-white p-6 rounded-xl shadow-lg">
             <div className="text-center py-8">
               <div className="text-5xl mb-4 text-gray-400">🔒</div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">
-                Funcionalidad Restringida
-              </h2>
+              <h2 className="text-2xl font-bold text-gray-800 mb-4">Funcionalidad Restringida</h2>
               <p className="text-gray-600 mb-6">
-                Para cambiar tu contraseña y acceder a todas las funciones,
-                necesitas iniciar sesión.
+                Para cambiar tu contraseña y acceder a todas las funciones, necesitas iniciar sesión.
               </p>
               <button
                 onClick={goToLogin}
@@ -526,6 +467,47 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {/* Botón de Regresar al final de la página */}
+      <div className="mt-12 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="text-sm text-gray-500">
+            {profile?.id ? `ID de usuario: ${profile.id}` : 'Sesión no iniciada'}
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleGoBack}
+              className="flex items-center px-6 py-3 bg-linear-to-r from-gray-100 to-gray-50 text-gray-700 rounded-lg hover:from-gray-200 hover:to-gray-100 transition-all shadow-sm hover:shadow"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="font-medium">Regresar</span>
+            </button>
+
+            {profile?.role !== 'guest' && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center px-6 py-3 bg-lienar-to-r from-red-50 to-red-100 text-red-700 rounded-lg hover:from-red-100 hover:to-red-200 transition-all shadow-sm hover:shadow"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span className="font-medium">Cerrar Sesión</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Información de debugging (solo en desarrollo) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+          <p className="font-mono">
+            Ruta guardada: {sessionStorage.getItem('previousRoute') || 'Ninguna'}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

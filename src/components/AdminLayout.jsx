@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { checkAuth, logout as authLogout, getProfile } from '../services/auth';
+import { checkAuth, logout, getProfile } from '../services/auth';
 
 const AdminLayout = () => {
     const [user, setUser] = useState(null);
@@ -76,7 +76,7 @@ const AdminLayout = () => {
     const handleLogout = async () => {
         try {
             await logout();
-            navigate('/login');
+            navigate('/');
             localStorage.removeItem('user');
             localStorage.removeItem('token');
             localStorage.removeItem('user_role');
