@@ -20,7 +20,7 @@ export default function Servicios() {
   }, []);
 
   return (
-    <div className="min-h-screen relative px-6 py-12 bg-black overflow-hidden">
+    <div className="min-h-screen relative px-6 py-12 bg-black overflow-hidden flex flex-col justify-center items-center">
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video
           className="w-full h-full object-cover"
