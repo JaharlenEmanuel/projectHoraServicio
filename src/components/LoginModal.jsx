@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { logout, getStoredUser } from "../services/auth";
+import { useNotifications } from "../context/NotificacionContext";
 
 export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLogged, setIsLogged] = useState(!!getStoredUser());
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     setIsLogged(!!getStoredUser());
@@ -26,6 +28,11 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
     const user = getStoredUser();
     if (user) navigate("/profile");
     else navigate("/login");
+    onClose();
+  };
+
+  const handleNotifications = () => {
+    navigate("/estado");
     onClose();
   };
 
@@ -80,6 +87,24 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
           </button>
         ) : (
           <div className="flex flex-col space-y-3">
+            {/* Notificaciones Button - Only visible when logged in */}
+            <button
+              className="
+                w-full py-2.5 rounded-xl font-medium text-blue-800 bg-white hover:bg-blue-50
+                border border-blue-200 shadow-sm hover:shadow-md transition flex items-center justify-center space-x-2
+                relative
+              "
+              onClick={handleNotifications}
+            >
+              <span>🔔</span>
+              <span>Notificaciones</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
             <button
               className="
                 w-full py-2.5 rounded-xl font-medium text-blue-800 bg-white hover:bg-blue-50
