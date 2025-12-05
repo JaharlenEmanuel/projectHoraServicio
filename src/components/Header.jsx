@@ -35,23 +35,17 @@ const Header = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-
   const handleNavigation = (item) => {
     setIsMenuOpen(false);
-    if (item === "Servicios") navigate("/servicios");
-    if (item === "Inicio") navigate("/");
-    if (item === "Contacto")
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  };
-
     if (item === "Servicios") {
       navigate("/servicios");
     } else if (item === "Inicio") {
       navigate("/");
     } else if (item === "Contacto") {
-
       navigate("/contacto");
     }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -105,7 +99,7 @@ const Header = () => {
           <img
             src="/usuario.png"
             alt="Login"
-            onClick={handleLogout}
+            onClick={toggleLoginMenu}
             className="h-10 w-10 object-contain cursor-pointer hover:scale-110 transition"
           />
         </div>
@@ -123,9 +117,7 @@ const Header = () => {
           ))}
           <div className="flex items-center space-x-3">
             <NotificationBell />
-            <button
-              onClick={handleLogout}
-            >
+            <button onClick={toggleLoginMenu}>
               <img
                 src="/usuario.png"
                 alt="Login"
@@ -133,24 +125,13 @@ const Header = () => {
               />
             </button>
           </div>
-
-          <button onClick={toggleLoginMenu}>
-            <img
-              src="/usuario.png"
-              alt="Login"
-              className="h-10 w-10 ml-4 cursor-pointer hover:scale-110 transition"
-            />
-          </button>
         </nav>
       </div>
 
       <div
-        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br 
-          from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500
-          ${
-            isMenuOpen
-              ? "scale-100 rotate-0 opacity-100"
-              : "scale-0 -rotate-12 opacity-0"
+        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${isMenuOpen
+            ? "scale-100 rotate-0 opacity-100"
+            : "scale-0 -rotate-12 opacity-0"
           }`}
       >
         <button
