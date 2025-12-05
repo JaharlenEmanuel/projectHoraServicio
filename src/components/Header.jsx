@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import LoginDropdown from "./LoginModal";
 import { checkAuth } from "../services/auth";
 import { logout } from "../services/auth";
+import NotificationBell from "./NotificationBell";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,6 +44,14 @@ const Header = () => {
       window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   };
 
+    if (item === "Servicios") {
+      navigate("/servicios");
+    } else if (item === "Inicio") {
+      navigate("/");
+    } else if (item === "Contacto") {
+
+      navigate("/contacto");
+    }
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -90,13 +99,18 @@ const Header = () => {
           />
         </div>
 
-        <img
-          src="/usuario.png"
-          alt="Login"
-          onClick={toggleLoginMenu}
-          className="md:block lg:hidden h-10 w-10 cursor-pointer hover:scale-110 transition relative -mr-4 sm:-mr-6"
-        />
+        {/* Mobile: Notification Bell + User Icon */}
+        <div className="md:flex lg:hidden items-center space-x-2 -mr-4 sm:-mr-6">
+          <NotificationBell />
+          <img
+            src="/usuario.png"
+            alt="Login"
+            onClick={handleLogout}
+            className="h-10 w-10 object-contain cursor-pointer hover:scale-110 transition"
+          />
+        </div>
 
+        {/* Desktop Navigation */}
         <nav className="hidden lg:flex space-x-7 text-lg text-blue-900 items-center">
           {["Inicio", "Servicios", "Contacto"].map((item) => (
             <span
@@ -107,6 +121,18 @@ const Header = () => {
               {item}
             </span>
           ))}
+          <div className="flex items-center space-x-3">
+            <NotificationBell />
+            <button
+              onClick={handleLogout}
+            >
+              <img
+                src="/usuario.png"
+                alt="Login"
+                className="h-10 w-10 object-contain cursor-pointer hover:scale-110 transition"
+              />
+            </button>
+          </div>
 
           <button onClick={toggleLoginMenu}>
             <img

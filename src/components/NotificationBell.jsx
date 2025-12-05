@@ -1,7 +1,7 @@
 // components/NotificationBell.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '../context/NotificationContext';
+import { useNotifications } from '../context/NotificacionContext';
 
 export default function NotificationBell() {
     const [isOpen, setIsOpen] = useState(false);
@@ -145,12 +145,12 @@ export default function NotificationBell() {
                     <div className="px-4 py-2 border-t border-gray-200 text-center">
                         <button
                             onClick={() => {
-                                navigate('/servicios');
+                                navigate('/estado');
                                 setIsOpen(false);
                             }}
                             className="text-sm text-blue-600 hover:text-blue-800"
                         >
-                            Ver todos los servicios
+                            Revisar todos los estados
                         </button>
                     </div>
                 </div>

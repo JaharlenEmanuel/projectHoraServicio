@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const API_URL = 'https://www.hs-service.api.crealape.com/api/v1';
 
-// Configurar axios para enviar cookies automáticamente
 const api = axios.create({
     baseURL: API_URL,
     withCredentials: true,
@@ -14,7 +13,7 @@ const api = axios.create({
 export const login = (email, password) =>
     api.post('/auth/login', { email, password });
 
-// 2. Obtener perfil
+// 2.  perfil
 export const getProfile = () =>
     api.get('/auth/profile');
 
@@ -25,14 +24,13 @@ export const changePassword = (oldPassword, newPassword) =>
         new_password: newPassword
     });
 
-// 4. Función para verificar autenticación
+// 4. autenticación
 export const checkAuth = async () => {
     try {
         const response = await getProfile();
 
         const user = response.data;
 
-        // Verifica diferentes formas en que podría venir el rol
         const roleName = user.role?.name || user.role || user.role_name || 'user';
 
         const isAdmin = roleName === 'admin' || roleName === 'Admin' || roleName === 'ADMIN';
@@ -45,6 +43,6 @@ export const checkAuth = async () => {
 };
 
 export const logout = () => {
-    // Aquí podrías agregar lógica adicional si necesitas llamar a un endpoint de logout
+
     return Promise.resolve();
 };
