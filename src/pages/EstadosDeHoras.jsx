@@ -276,7 +276,11 @@ export default function EstadosDeHoras() {
 
         {/* Tabla de servicios */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {filteredServices.length === 0 ? (
+          {filteredServices.sort((a, b) => {
+            const dateA = new Date(a.created_at || a.date || 0);
+            const dateB = new Date(b.created_at || b.date || 0);
+            return dateB - dateA;
+          }).length === 0 ? (
             <div className="p-8 text-center">
               <div className="text-gray-400 text-5xl mb-4">📭</div>
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
