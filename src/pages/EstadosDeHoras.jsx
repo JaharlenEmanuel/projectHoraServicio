@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getReports } from '../services/api';
 import { getProfile } from '../services/auth';
 import { useNotifications } from '../context/NotificacionContext';
+import ModalService from '../components/ModalServicios';
 
 export default function EstadosDeHoras() {
   const [services, setServices] = useState([]);
@@ -11,6 +12,7 @@ export default function EstadosDeHoras() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const { checkForNewComments } = useNotifications();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filtros
   const [searchTerm, setSearchTerm] = useState('');
@@ -160,7 +162,7 @@ export default function EstadosDeHoras() {
               </p>
             </div>
             <button
-              onClick={() => navigate('/servicios')}
+              onClick={() => setIsModalOpen(true)}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center w-full md:w-auto"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -294,7 +296,7 @@ export default function EstadosDeHoras() {
                   : 'Comienza reportando tus primeras horas de servicio'}
               </p>
               <button
-                onClick={() => navigate('/servicios')}
+                onClick={() => setIsModalOpen(true)}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Crear mi primer servicio
@@ -389,6 +391,11 @@ export default function EstadosDeHoras() {
           </div>
         )}
       </div>
+      <ModalService
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={loadServices}
+      />
     </div>
   );
 }
