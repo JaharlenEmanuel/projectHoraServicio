@@ -17,9 +17,10 @@ const Profile = () => {
   useEffect(() => {
     fetchProfile();
 
-    // Guardar la ruta de referencia
-    if (location.state?.from) {
+    // Guardar la ruta de referencia SOLO si no es la misma
+    if (location.state?.from && location.state.from !== '/profile') {
       sessionStorage.setItem('previousRoute', location.state.from);
+      console.log('Ruta guardada desde location.state:', location.state.from);
     }
   }, [location.state]);
 
@@ -36,8 +37,8 @@ const Profile = () => {
         if (response.status === 200 && response.data) {
           const userData = response.data;
 
-          // Determinar el rol
-          const userRole = localStorage.getItem('role') ||
+          // Determinar el rol - USANDO user_role de localStorage
+          const userRole = localStorage.getItem('user_role') ||
             userData.role ||
             (userData.role_id === 1 ? 'admin' : 'student');
 
@@ -61,7 +62,7 @@ const Profile = () => {
           setTimeout(() => {
             setMessage({ text: '', type: '' });
           }, 3000);
-          return; // Salir si se cargó correctamente
+          return;
         }
       } catch (apiError) {
         console.log('API call failed, trying localStorage:', apiError);
@@ -79,11 +80,9 @@ const Profile = () => {
           });
         } catch (parseError) {
           console.error('Error parsing stored user:', parseError);
-          // Crear un perfil por defecto
           createDefaultProfile();
         }
       } else {
-        // Si no hay nada en localStorage, crear perfil por defecto
         createDefaultProfile();
       }
 
@@ -95,7 +94,6 @@ const Profile = () => {
     }
   };
 
-  // Función para crear un perfil por defecto
   const createDefaultProfile = () => {
     const defaultProfile = {
       id: 'guest-001',
@@ -115,7 +113,6 @@ const Profile = () => {
     e.preventDefault();
     setMessage({ text: '', type: '' });
 
-    // Si es usuario invitado, mostrar mensaje
     if (profile?.role === 'guest') {
       setMessage({
         text: '❌ Debes iniciar sesión para cambiar la contraseña',
@@ -124,7 +121,6 @@ const Profile = () => {
       return;
     }
 
-    // Validaciones
     const validations = [
       { condition: !passwordForm.old.trim(), message: '❌ Por favor ingrese su contraseña actual' },
       { condition: !passwordForm.new.trim(), message: '❌ Por favor ingrese la nueva contraseña' },
@@ -177,7 +173,7 @@ const Profile = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('role');
+    localStorage.removeItem('user_role');
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     sessionStorage.removeItem('token');
@@ -185,41 +181,41 @@ const Profile = () => {
     window.location.href = '/login';
   };
 
-  // Función para regresar a la página anterior
+  // Función para regresar a la página anterior - CORREGIDA
   const handleGoBack = () => {
-    const previousRoute = sessionStorage.getItem('previousRoute');
+    console.log('=== handleGoBack ejecutado ===');
+    console.log('Perfil role:', profile?.role);
+    console.log('LocalStorage user_role:', localStorage.getItem('user_role'));
 
-    if (previousRoute && previousRoute !== window.location.pathname) {
-      // Si tenemos una ruta guardada y no es la actual
-      navigate(previousRoute);
+    // Primero intentar navegar hacia atrás en el historial
+    if (window.history.length > 1) {
+      console.log('Navegando hacia atrás (navigate -1)');
+      navigate(-1);
+      return;
+    }
+
+    // Si no hay historial, determinar el rol y redirigir
+    const role = profile?.role || localStorage.getItem('user_role') || 'student';
+    console.log('Rol determinado para redirección:', role);
+
+    if (role === 'admin') {
+      console.log('Redirigiendo admin a /admin/dashboard');
+      navigate('/admin/dashboard');
     } else {
-      // Si no hay ruta guardada, intentar usar el historial del navegador
-      if (window.history.length > 1) {
-        navigate(-1); // Ir a la página anterior en el historial
-      } else {
-        // Si no hay historial, ir según el rol
-        const role = profile?.originalRole || localStorage.getItem('role');
-        if (role === 'admin') {
-          navigate('/admin/dashboard');
-        } else if (role === 'student') {
-          navigate('/servicios');
-        } else {
-          navigate('/');
-        }
-      }
+      console.log('Redirigiendo estudiante/otros a /servicios');
+      navigate('/servicios');
     }
   };
 
   // Función para redirigir al dashboard según el rol
   const goToDashboard = () => {
-    const role = profile?.originalRole || localStorage.getItem('role');
+    const role = profile?.role || localStorage.getItem('user_role') || 'student';
+    console.log('goToDashboard - Rol:', role);
 
     if (role === 'admin') {
       navigate('/admin/dashboard');
-    } else if (role === 'student') {
-      navigate('/servicios');
     } else {
-      navigate('/login');
+      navigate('/servicios');
     }
   };
 
@@ -240,23 +236,31 @@ const Profile = () => {
     <div className="max-w-6xl mx-auto p-4">
       {/* Header con acciones */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Mi Perfil</h1>
-          <p className="text-gray-500">
-            {profile?.role === 'admin' ? 'Administrador' :
-              profile?.role === 'student' ? 'Estudiante' :
-                profile?.role === 'guest' ? 'Usuario Invitado' : 'Usuario'}
-          </p>
+        <div className="flex items-center">
+          {/* Botón de Regresar */}
+          <button
+            onClick={handleGoBack}
+            className="mr-4 p-2 rounded-full hover:bg-gray-100 transition-colors text-gray-600 hover:text-gray-800"
+            title="Regresar"
+            aria-label="Regresar a la página anterior"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Mi Perfil</h1>
+            <p className="text-gray-500">
+              {profile?.role === 'admin' ? 'Administrador' :
+                profile?.role === 'student' ? 'Estudiante' :
+                  profile?.role === 'guest' ? 'Usuario Invitado' : 'Usuario'}
+            </p>
+          </div>
         </div>
         <div className="flex space-x-3 mt-4 md:mt-0">
           {profile?.role !== 'guest' ? (
             <>
-              <button
-                onClick={goToDashboard}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                {profile?.role === 'admin' ? 'Ir al Panel Admin' : 'Ir a Servicios'}
-              </button>
+
               <button
                 onClick={fetchProfile}
                 disabled={loading.profile}
@@ -349,10 +353,10 @@ const Profile = () => {
               </div>
             )}
 
-            {profile?.studentId && (
+            {profile?.StudentId && (
               <div className="pb-3 border-b border-gray-100">
                 <p className="text-sm text-gray-500 mb-1">Matrícula</p>
-                <p className="font-medium text-gray-800">{profile.studentId}</p>
+                <p className="font-medium text-gray-800">{profile.StudentId}</p>
               </div>
             )}
 
@@ -467,47 +471,6 @@ const Profile = () => {
           </div>
         )}
       </div>
-
-      {/* Botón de Regresar al final de la página */}
-      <div className="mt-12 pt-6 border-t border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-gray-500">
-            {profile?.id ? `ID de usuario: ${profile.id}` : 'Sesión no iniciada'}
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={handleGoBack}
-              className="flex items-center px-6 py-3 bg-linear-to-r from-gray-100 to-gray-50 text-gray-700 rounded-lg hover:from-gray-200 hover:to-gray-100 transition-all shadow-sm hover:shadow"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">Regresar</span>
-            </button>
-
-            {profile?.role !== 'guest' && (
-              <button
-                onClick={handleLogout}
-                className="flex items-center px-6 py-3 bg-lienar-to-r from-red-50 to-red-100 text-red-700 rounded-lg hover:from-red-100 hover:to-red-200 transition-all shadow-sm hover:shadow"
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span className="font-medium">Cerrar Sesión</span>
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Información de debugging (solo en desarrollo) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
-          <p className="font-mono">
-            Ruta guardada: {sessionStorage.getItem('previousRoute') || 'Ninguna'}
-          </p>
-        </div>
-      )}
     </div>
   );
 };
