@@ -1,218 +1,169 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = 'https://www.hs-service.api.crealape.com/api/v1';
+const API_URL = "https://www.hs-service.api.crealape.com/api/v1";
 
-// Configurar axios para enviar cookies automáticamente
 const api = axios.create({
-    baseURL: API_URL,
-    withCredentials: true,
+  baseURL: API_URL,
+  withCredentials: true,
 });
 
-// Interceptor para manejar errores globalmente
 api.interceptors.response.use(
-    response => response,
-    error => {
-        console.error('API Error:', error.response?.data || error.message);
-        return Promise.reject(error);
-    }
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error.response?.data || error.message);
+    return Promise.reject(error);
+  }
 );
 
-// === FUNCIONES DE AUTENTICACIÓN ===
+export const clearUserData = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user_role");
+  localStorage.removeItem("user_data");
+  localStorage.removeItem("login_timestamp");
+};
 
-// 1. Login - MODIFICADO para guardar rol
+export const getStoredRole = () => {
+  return localStorage.getItem("user_role") || null;
+};
+
+export const getStoredUser = () => {
+  const saved = localStorage.getItem("user_data");
+  return saved ? JSON.parse(saved) : null;
+};
+
 export const login = async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
+  const response = await api.post("/auth/login", { email, password });
 
-    // Después de login exitoso, obtener perfil y guardar rol
-    try {
-        const profileResponse = await getProfile();
-        const user = profileResponse.data;
+  if (response.data?.token) {
+    localStorage.setItem("token", response.data.token);
+  }
 
-        // Extraer y normalizar el rol
-        const roleName = user.role?.name || user.role || user.role_name || 'user';
-        const normalizedRole = roleName.toLowerCase();
+  try {
+    const profileResponse = await getProfile();
+    const user = profileResponse.data;
 
-        // Guardar en localStorage
-        localStorage.setItem('user_role', normalizedRole);
-        localStorage.setItem('user_data', JSON.stringify({
-            id: user.id,
-            email: user.email,
-            name: user.name || user.email,
-            role: normalizedRole
-        }));
+    const roleName = user.role?.name || user.role || user.role_name || "user";
+    const normalizedRole = roleName.toLowerCase();
 
-        // También guardar timestamp para expiración opcional
-        localStorage.setItem('login_timestamp', new Date().getTime().toString());
+    localStorage.setItem("user_role", normalizedRole);
+    localStorage.setItem(
+      "user_data",
+      JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name || user.email,
+        role: normalizedRole,
+      })
+    );
 
-    } catch (error) {
-        console.warn('No se pudo obtener el perfil después del login:', error);
-    }
+    localStorage.setItem("login_timestamp", Date.now().toString());
+  } catch (err) {
+    console.warn("No se pudo obtener perfil después del login", err);
+  }
 
-    return response;
+  return response;
 };
 
-// 2. Obtener perfil - MODIFICADO para guardar rol si no existe
 export const getProfile = async () => {
-    try {
-        const response = await api.get('/auth/profile');
-        const user = response.data;
+  const response = await api.get("/auth/profile");
 
-        // Extraer y normalizar el rol
-        const roleName = user.role?.name || user.role || user.role_name || 'user';
-        const normalizedRole = roleName.toLowerCase();
+  const user = response.data;
+  const roleName = user.role?.name || user.role || user.role_name || "user";
+  const normalizedRole = roleName.toLowerCase();
 
-        // Guardar en localStorage si no existe o si cambió
-        const currentRole = localStorage.getItem('user_role');
-        if (!currentRole || currentRole !== normalizedRole) {
-            localStorage.setItem('user_role', normalizedRole);
-            localStorage.setItem('user_data', JSON.stringify({
-                id: user.id,
-                email: user.email,
-                name: user.name || user.email,
-                role: normalizedRole
-            }));
-        }
+  const currentRole = localStorage.getItem("user_role");
 
-        return response;
-    } catch (error) {
-        console.error('Error fetching profile:', error);
-        throw error;
-    }
+  if (!currentRole || currentRole !== normalizedRole) {
+    localStorage.setItem("user_role", normalizedRole);
+    localStorage.setItem(
+      "user_data",
+      JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name || user.email,
+        role: normalizedRole,
+      })
+    );
+  }
+
+  return response;
 };
 
-// 3. Cambiar contraseña
-export const changePassword = async (oldPassword, newPassword) => {
-    try {
-        console.log('Sending password change request:', { oldPassword, newPassword });
-
-        const response = await api.put('/auth/change-password', {
-            old_password: oldPassword,
-            new_password: newPassword
-        });
-
-        console.log('Password change successful:', response.data);
-        return response;
-    } catch (error) {
-        console.error('Error changing password:', {
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message
-        });
-        throw error;
-    }
-};
-
-// 4. Función para verificar autenticación - MODIFICADA para usar localStorage primero
 export const checkAuth = async (skipApiCheck = false) => {
-    // Primero verificar localStorage
-    const userRole = localStorage.getItem('user_role');
-    const userDataStr = localStorage.getItem('user_data');
+  const role = localStorage.getItem("user_role");
+  const userdata = getStoredUser();
 
-    if (userRole && userDataStr) {
-        const userData = JSON.parse(userDataStr);
-
-        // Verificar expiración opcional (8 horas)
-        const loginTimestamp = localStorage.getItem('login_timestamp');
-        if (loginTimestamp) {
-            const hoursSinceLogin = (new Date().getTime() - parseInt(loginTimestamp)) / (1000 * 60 * 60);
-            if (hoursSinceLogin > 8) {
-                console.log('Sesión expirada (más de 8 horas)');
-                clearUserData();
-                return { isAuthenticated: false, isAdmin: false, user: null };
-            }
-        }
-
-        if (skipApiCheck) {
-            // Si se salta la verificación de API, usar datos de localStorage
-            const isAdmin = userRole === 'admin';
-            return {
-                isAuthenticated: true,
-                isAdmin,
-                user: userData,
-                fromCache: true
-            };
-        }
-    }
-
-    // Si no hay datos en localStorage o se requiere verificación de API
-    try {
-        const response = await api.get('/auth/profile');
-        const user = response.data;
-
-        // Verificar diferentes formas en que podría venir el rol
-        const roleName = user.role?.name || user.role || user.role_name || 'user';
-        const normalizedRole = roleName.toLowerCase();
-        const isAdmin = normalizedRole === 'admin';
-
-        // Guardar en localStorage
-        localStorage.setItem('user_role', normalizedRole);
-        localStorage.setItem('user_data', JSON.stringify({
-            id: user.id,
-            email: user.email,
-            name: user.name || user.email,
-            role: normalizedRole
-        }));
-        localStorage.setItem('login_timestamp', new Date().getTime().toString());
-
-        return {
-            isAuthenticated: true,
-            isAdmin,
-            user: {
-                ...user,
-                role: normalizedRole
-            }
-        };
-    } catch (error) {
-        // Si hay error en la API, limpiar localStorage
+  if (role && userdata) {
+    const ts = localStorage.getItem("login_timestamp");
+    if (ts) {
+      const hours = (Date.now() - parseInt(ts)) / (1000 * 60 * 60);
+      if (hours > 8) {
+        console.log("Sesión expirada");
         clearUserData();
         return { isAuthenticated: false, isAdmin: false, user: null };
+      }
     }
+
+    if (skipApiCheck) {
+      return {
+        isAuthenticated: true,
+        isAdmin: role === "admin",
+        user: userdata,
+        fromCache: true,
+      };
+    }
+  }
+
+  try {
+    const response = await api.get("/auth/profile");
+    const user = response.data;
+
+    const roleName = user.role?.name || user.role || user.role_name || "user";
+    const normalizedRole = roleName.toLowerCase();
+
+    localStorage.setItem("user_role", normalizedRole);
+    localStorage.setItem("user_data", JSON.stringify(user));
+    localStorage.setItem("login_timestamp", Date.now().toString());
+
+    return {
+      isAuthenticated: true,
+      isAdmin: normalizedRole === "admin",
+      user,
+    };
+  } catch (err) {
+    clearUserData();
+    return { isAuthenticated: false, isAdmin: false, user: null };
+  }
 };
 
-// 5. Obtener rol desde localStorage (sincrónico, rápido)
-export const getStoredRole = () => {
-    return localStorage.getItem('user_role') || null;
-};
-
-// 6. Obtener datos de usuario desde localStorage
-export const getStoredUser = () => {
-    return userDataStr ? JSON.parse(userDataStr) : null;
-};
-
-// 7. Limpiar datos de usuario
-export const clearUserData = () => {
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_data');
-    localStorage.removeItem('login_timestamp');
-};
-
-// 8. Logout - MODIFICADO para limpiar localStorage
 export const logout = async () => {
-    try {
-        localStorage.removeItem('user_role');
-        localStorage.removeItem('user_data');
-        localStorage.removeItem('login_timestamp');
-        // Intentar logout en el backend
-        await api.post('/auth/logout');
-    } catch (error) {
-        console.warn('Error en logout del backend:', error);
-    } finally {
-        // Siempre limpiar localStorage
-        clearUserData();
-    }
-    return Promise.resolve();
+  try {
+    await api.post("/auth/logout");
+  } catch (err) {
+    console.warn("Error en logout del backend:", err);
+  } finally {
+    clearUserData();
+  }
+
+  return Promise.resolve();
 };
 
-// 9. Verificar si el usuario es admin (sincrónico)
-export const isAdmin = () => {
-    const role = getStoredRole();
-    return role === 'admin';
+export const changePassword = async (oldPassword, newPassword) => {
+  try {
+    const response = await api.put("/auth/change-password", {
+      old_password: oldPassword,
+      new_password: newPassword,
+    });
+    return response;
+  } catch (error) {
+    console.error(
+      "Error al cambiar contraseña:",
+      error.response?.data || error.message
+    );
+    throw error;
+  }
 };
 
-// 10. Verificar si el usuario es estudiante (sincrónico)
-export const isStudent = () => {
-    const role = getStoredRole();
-    return role === 'student' || role === 'user' || !role;
-};
-
+export const isAdmin = () => getStoredRole() === "admin";
+export const isStudent = () => getStoredRole() === "student";
 export default api;

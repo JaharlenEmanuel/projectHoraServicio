@@ -47,9 +47,9 @@ export default function Servicios() {
         <Cards carouselImages={carouselImages} />
       </div>
 
-      <style jsx global>{`
-        @tailwind utilities;
-        @layer utilities {
+      {/* Estilos dentro del componente sin jsx/global */}
+      <style>
+        {`
           @keyframes gelatina {
             0% {
               transform: translateY(-300px) scaleX(0.8) scaleY(1.2);
@@ -72,12 +72,12 @@ export default function Servicios() {
               filter: drop-shadow(0 0 25px #00ffff);
             }
           }
+
           .gelatinaNeon {
-            animation: gelatina 1s cubic-bezier(0.68, -0.55, 0.27, 1.55)
-              forwards;
+            animation: gelatina 1s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
           }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 }
