@@ -93,8 +93,7 @@ const Header = () => {
           />
         </div>
 
-        {/* Mobile: Notification Bell + User Icon */}
-        <div className="md:flex lg:hidden items-center space-x-3 -mr-4 sm:-mr-6">`r`n          <NotificationBell />`r`n          <img
+        {/* Mobile: User Icon Only */}`r`n        <div className="md:flex lg:hidden items-center -mr-4 sm:-mr-6">`r`n          <img
             src="/usuario.png"
             alt="Login"
             onClick={toggleLoginMenu}
