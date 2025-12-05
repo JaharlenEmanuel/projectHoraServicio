@@ -93,7 +93,9 @@ const Header = () => {
           />
         </div>
 
-        {/* Mobile: User Icon Only */}`r`n        <div className="md:flex lg:hidden items-center -mr-4 sm:-mr-6">`r`n          <img
+        {/* Mobile: User Icon Only */}
+        <div className="md:flex lg:hidden items-center -mr-4 sm:-mr-6">
+          <img
             src="/usuario.png"
             alt="Login"
             onClick={toggleLoginMenu}
@@ -178,3 +180,4 @@ const Header = () => {
 };
 
 export default Header;
+
