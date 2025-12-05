@@ -1,11 +1,21 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getStoredUser } from "../services/auth";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isLogged, setIsLogged] = useState(!!getStoredUser());
+
+  useEffect(() => {
+    
+    setIsLogged(!!getStoredUser());
+  }, [location]);
+
   const log = () => {
-    navigate('/login', { replace: true });
+    navigate("/login", { replace: true });
   };
+
   return (
     <div
       className="w-full h-screen bg-center bg-cover flex flex-col justify-center items-center"
@@ -25,11 +35,14 @@ export default function LandingPage() {
         ></iframe>
       </div>
 
-      <button
-        onClick={log}
-        className="mt-6 px-6 py-3 bg-linear-to-r from-orange-400 to-yellow-400 text-white font-bold rounded-2xl shadow-2xl hover:scale-105 hover:from-orange-500 hover:to-yellow-500 transition-transform duration-300">
-        Iniciar Sesión
-      </button>
+      {!isLogged && (
+        <button
+          onClick={log}
+          className="mt-6 px-6 py-3 bg-linear-to-r from-orange-400 to-yellow-400 text-white font-bold rounded-2xl shadow-2xl hover:scale-105 hover:from-orange-500 hover:to-yellow-500 transition-transform duration-300"
+        >
+          Iniciar Sesión
+        </button>
+      )}
     </div>
   );
 }
