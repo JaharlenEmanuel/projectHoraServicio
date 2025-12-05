@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);
@@ -11,16 +11,32 @@ const Header = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+  const handleQuickLogout = () => {
+    // Limpiar inmediatamente
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_data');
+    localStorage.removeItem('login_timestamp');
+
+    sessionStorage.clear();
+
+    // Redirigir inmediatamente
+    navigate('/login', {
+      replace: true,
+      state: { message: 'Sesión cerrada correctamente' }
+    });
+  };
 
   const handleNavigation = (item) => {
-    setIsMenuOpen(false); 
+    setIsMenuOpen(false);
 
     if (item === "Servicios") {
       navigate("/servicios");
     } else if (item === "Inicio") {
       navigate("/");
     } else if (item === "Contacto") {
-      
+
       window.scrollTo({
         top: document.body.scrollHeight,
         behavior: "smooth",
@@ -62,6 +78,7 @@ const Header = () => {
         <img
           src="/usuario.png"
           alt="Login"
+          onClick={handleQuickLogout}
           className="md:block lg:hidden h-10 w-10 object-contain cursor-pointer hover:scale-110 transition relative -mr-4 sm:-mr-6"
         />
 
@@ -75,21 +92,28 @@ const Header = () => {
               {item}
             </span>
           ))}
-          <img
-            src="/usuario.png"
-            alt="Login"
-            className="h-10 w-10 object-contain ml-4 cursor-pointer hover:scale-110 transition"
-          />
+          <div >
+
+            <button
+              onClick={handleQuickLogout}
+            >
+              <img
+                src="/usuario.png"
+                alt="Login"
+                className="h-10 w-10 object-contain ml-4 cursor-pointer hover:scale-110 transition"
+              />
+            </button>
+          </div>
+
         </nav>
       </div>
 
-      
+
       <div
-        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${
-          isMenuOpen
-            ? "scale-100 rotate-0 opacity-100"
-            : "scale-0 -rotate-12 opacity-0"
-        }`}
+        className={`fixed top-0 left-0 h-full w-full bg-linear-to-br from-cyan-100 via-white to-blue-200 z-40 transform transition-all duration-500 ${isMenuOpen
+          ? "scale-100 rotate-0 opacity-100"
+          : "scale-0 -rotate-12 opacity-0"
+          }`}
       >
         <button
           className="absolute top-6 right-6 text-blue-900 focus:outline-none"
@@ -121,6 +145,7 @@ const Header = () => {
               {item}
             </span>
           ))}
+
         </nav>
       </div>
     </header>

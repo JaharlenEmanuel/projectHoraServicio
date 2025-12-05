@@ -1,64 +1,66 @@
-import React, { useState } from 'react'
-import { login } from '../services/authService'
+import React, { useState } from 'react';
+import { login, getProfile, getStoredRole } from '../services/auth';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [usuario, setUsuario] = useState('')
-  const [contrasena, setContrasena] = useState('')
-  const [recordar, setRecordar] = useState(false)
-  const [mostrarContrasena, setMostrarContrasena] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
     try {
-      const response = await login(usuario, contrasena)
-      console.log('Login exitoso:', response.data)
-      alert('¡Login exitoso! Bienvenido.')
-    } catch (err) {
-      console.error('Error en login:', err)
-      
-      if (err.response) {
-        setError(err.response.data?.message || 'Credenciales incorrectas')
-      } else if (err.request) {
-        setError('No se pudo conectar con el servidor')
+      // 1. Primero hacer login
+      await login(email, password);
+      console.log('✅ Login exitoso');
+
+      // 2. Obtener el perfil (esto guardará automáticamente el rol en localStorage)
+      const profileResponse = await getProfile();
+      console.log('✅ Perfil obtenido:', profileResponse.data);
+      console.log('✅ Rol detectado:', profileResponse.role);
+
+      // 3. Obtener rol desde localStorage (asegurarnos que esté guardado)
+      const storedRole = getStoredRole();
+      console.log('💾 Rol en localStorage:', storedRole);
+
+      // 4. Redirigir según el rol
+      if (storedRole === 'admin') {
+        navigate('/admin/dashboard');
       } else {
-        setError('Error al procesar la solicitud')
+        // Si es estudiante o cualquier otro rol
+        navigate('/servicios');
       }
+
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      setError(error.response?.data?.message || 'Error de conexión');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const [recordar, setRecordar] = useState(false);
+  const [mostrarContrasena, setMostrarContrasena] = useState(false);
 
   return (
     <div className="min-h-screen flex">
-      {/* Video  */}
+      {/* Video */}
       <div className="hidden lg:flex lg:w-11/16 p-12 flex-col justify-center items-start text-white relative overflow-hidden bg-[#1a2332]">
-        <video 
-          autoPlay 
-          loop 
-          muted 
+        <video
+          autoPlay
+          loop
+          muted
           playsInline
           className="absolute inset-0 w-full h-full object-contain"
         >
           <source src="/images/intro.mp4" type="video/mp4" />
         </video>
-        
-        {/* <div className="absolute inset-0 bg-black/40"></div>
-        
-        <div className="relative z-10 max-w-md">
-          <h1 className="text-5xl font-bold mb-6 tracking-tight">FUNVAL</h1>
-          <h2 className="text-3xl font-semibold mb-4">
-            Fundación Vanguardia para el Liderazgo
-          </h2>
-          <p className="text-lg text-white/90 leading-relaxed">
-            Transformando vidas a través de la educación técnica y el desarrollo profesional.
-          </p>
-        </div>*/}
-      </div> 
+      </div>
 
       {/* Login */}
       <div className="w-full lg:w-5/16 flex items-center justify-center p-8 bg-gray-50">
@@ -86,17 +88,17 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label 
-                htmlFor="usuario" 
+              <label
+                htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Usuario o Número de Matrícula
               </label>
               <input
                 type="text"
-                id="usuario"
-                value={usuario}
-                onChange={(e) => setUsuario(e.target.value)}
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Ingrese su usuario"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#126aee] focus:border-transparent outline-none transition-all duration-200 bg-white"
                 required
@@ -104,8 +106,8 @@ export default function Login() {
             </div>
 
             <div>
-              <label 
-                htmlFor="contrasena" 
+              <label
+                htmlFor="contrasena"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
                 Contraseña
@@ -114,8 +116,8 @@ export default function Login() {
                 <input
                   type={mostrarContrasena ? "text" : "password"}
                   id="contrasena"
-                  value={contrasena}
-                  onChange={(e) => setContrasena(e.target.value)}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Ingrese su contraseña"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#ff6600] focus:border-transparent outline-none transition-all duration-200 bg-white pr-12"
                   required
@@ -151,8 +153,8 @@ export default function Login() {
                   Recordarme
                 </span>
               </label>
-              <a 
-                href="#" 
+              <a
+                href="#"
                 className="text-sm text-[#126aee] hover:text-[#126aee] font-medium transition-colors"
               >
                 ¿Olvidó su contraseña?
@@ -179,5 +181,5 @@ export default function Login() {
         </div>
       </div>
     </div>
-  )
+  );
 }
