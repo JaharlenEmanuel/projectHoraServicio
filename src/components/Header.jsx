@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginDropdown from "./LoginModal";
 import { checkAuth } from "../services/auth";
@@ -94,9 +94,7 @@ const Header = () => {
         </div>
 
         {/* Mobile: Notification Bell + User Icon */}
-        <div className="md:flex lg:hidden items-center space-x-3 -mr-4 sm:-mr-6">
-          <NotificationBell />
-          <img
+        <div className="md:flex lg:hidden items-center space-x-3 -mr-4 sm:-mr-6">`r`n          <NotificationBell />`r`n          <img
             src="/usuario.png"
             alt="Login"
             onClick={toggleLoginMenu}

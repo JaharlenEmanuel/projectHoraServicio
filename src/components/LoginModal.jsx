@@ -7,7 +7,14 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLogged, setIsLogged] = useState(!!getStoredUser());
-  const { unreadCount } = useNotifications();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const {
+    notifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    removeNotification
+  } = useNotifications();
 
   useEffect(() => {
     setIsLogged(!!getStoredUser());
@@ -31,9 +38,12 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
     onClose();
   };
 
-  const handleNotifications = () => {
-    navigate("/estado");
-    onClose();
+  const handleNotificationClick = (notification) => {
+    markAsRead(notification.id);
+    if (notification.link) {
+      navigate(notification.link);
+      onClose();
+    }
   };
 
   const handleLogout = async () => {
@@ -45,6 +55,21 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
       navigate("/");
       onClose();
     }
+  };
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Ahora';
+    if (diffMins < 60) return `Hace ${diffMins} min`;
+    if (diffHours < 24) return `Hace ${diffHours}h`;
+    if (diffDays === 1) return 'Ayer';
+    return `Hace ${diffDays} días`;
   };
 
   return (
@@ -87,23 +112,89 @@ export default function LoginDropdown({ isOpen, onClose, onLoginClick }) {
           </button>
         ) : (
           <div className="flex flex-col space-y-3">
-            {/* Notificaciones Button - Only visible when logged in */}
-            <button
-              className="
-                w-full py-2.5 rounded-xl font-medium text-blue-800 bg-white hover:bg-blue-50
-                border border-blue-200 shadow-sm hover:shadow-md transition flex items-center justify-center space-x-2
-                relative
-              "
-              onClick={handleNotifications}
-            >
-              <span>🔔</span>
-              <span>Notificaciones</span>
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
+            {/* Notificaciones Button - Only visible on mobile (hidden on lg+) */}
+            <div className="lg:hidden">
+              <button
+                className="
+                  w-full py-2.5 rounded-xl font-medium text-blue-800 bg-white hover:bg-blue-50
+                  border border-blue-200 shadow-sm hover:shadow-md transition flex items-center justify-center space-x-2
+                  relative
+                "
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <span>🔔</span>
+                <span>Notificaciones</span>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Mobile Notifications Dropdown */}
+              {showNotifications && (
+                <div className="mt-2 max-h-64 overflow-y-auto bg-white rounded-xl border border-blue-200 shadow-lg">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      <div className="text-2xl mb-2">📭</div>
+                      <p className="text-sm">No hay notificaciones</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="sticky top-0 bg-white border-b border-gray-200 p-2 flex justify-between items-center">
+                        <span className="text-xs font-semibold text-gray-700">
+                          {unreadCount} sin leer
+                        </span>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            Marcar todas como leídas
+                          </button>
+                        )}
+                      </div>
+                      {notifications.slice(0, 5).map((notification) => (
+                        <div
+                          key={notification.id}
+                          className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''
+                            }`}
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm text-gray-800">
+                                {notification.title}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {notification.message}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {formatTime(notification.timestamp)}
+                              </p>
+                            </div>
+                            {!notification.read && (
+                              <span className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1"></span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      {notifications.length > 5 && (
+                        <button
+                          onClick={() => {
+                            navigate('/estado');
+                            onClose();
+                          }}
+                          className="w-full p-2 text-xs text-blue-600 hover:bg-blue-50"
+                        >
+                          Ver todas las notificaciones
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
 
             <button
               className="
