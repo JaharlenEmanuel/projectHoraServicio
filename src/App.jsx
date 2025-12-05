@@ -88,6 +88,78 @@ function App() {
         {/* Redireccion */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <NotificationProvider>
+        <Routes>
+          {/* Ruta pública principal */}
+          <Route path="/" element={
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <LandingPage />
+              <Footer />
+            </div>
+          } />
+
+          {/* Ruta de login - pública */}
+          <Route path="/login" element={<Login />} />
+
+          {/* ===== RUTAS PROTEGIDAS PARA ESTUDIANTES ===== */}
+
+          {/* Ruta de servicios - SOLO para estudiantes */}
+          <Route path="/servicios" element={
+            <AuthGuard requiredRole="student">
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <Servicios />
+                <Footer />
+              </div>
+            </AuthGuard>
+          } />
+
+          {/* Ruta de estado - SOLO para estudiantes */}
+          <Route path="/estado" element={
+            <AuthGuard requiredRole="student">
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <EstadosDeHoras />
+                <Footer />
+              </div>
+            </AuthGuard>
+          } />
+
+          {/* Ruta de perfil - para cualquier usuario autenticado */}
+          <Route path="/profile" element={
+            <AuthGuard>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <Profile />
+                <Footer />
+              </div>
+            </AuthGuard>
+          } />
+
+          {/* ===== RUTAS PROTEGIDAS PARA ADMIN ===== */}
+
+          <Route path="/admin" element={
+            <AuthGuard requiredRole="admin">
+              <Navigate to="/admin/dashboard" replace />
+            </AuthGuard>
+          } />
+
+          <Route path="/admin/*" element={
+            <AuthGuard requiredRole="admin">
+              <AdminLayout />
+            </AuthGuard>
+          }>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="users" element={<Users />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="categories" element={<Categories />} />
+          </Route>
+
+          {/* Redirecciones */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </NotificationProvider>
     </BrowserRouter>
   );
 }
